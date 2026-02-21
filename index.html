@@ -2,18 +2,19 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>University Cup</title>
+<title>University Department Cup</title>
+
 <style>
 body{
   margin:0;
-  font-family:Arial;
+  font-family:Arial, Helvetica, sans-serif;
   background:#0f172a;
   color:white;
 }
 
 header{
   background:#111827;
-  padding:15px;
+  padding:18px;
   text-align:center;
   font-size:22px;
   font-weight:bold;
@@ -55,6 +56,41 @@ nav button:hover{
   margin:10px 0;
 }
 
+/* MATCH CARD STYLE */
+
+.match-card{
+  background:#1e293b;
+  padding:15px;
+  margin:12px 0;
+  border-radius:10px;
+  text-align:center;
+  border-top:3px solid gold;
+}
+
+.match-date{
+  font-size:14px;
+  opacity:0.8;
+}
+
+.match-time{
+  font-size:16px;
+  margin:5px 0 10px 0;
+  font-weight:bold;
+}
+
+.match-teams{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  font-size:18px;
+  font-weight:bold;
+}
+
+.vs{
+  font-size:16px;
+  opacity:0.7;
+}
+
 .small-btn{
   display:block;
   margin:15px auto;
@@ -66,6 +102,8 @@ nav button:hover{
   cursor:pointer;
 }
 
+/* TABLE */
+
 table{
   width:100%;
   border-collapse:collapse;
@@ -74,10 +112,12 @@ table{
 
 th,td{
   border:1px solid #444;
-  padding:5px;
+  padding:6px;
   text-align:center;
   font-size:13px;
 }
+
+/* CHAT */
 
 .chat-box{
   background:#1e293b;
@@ -126,17 +166,17 @@ th,td{
 
   <div class="card">
     <h3>Opening Ceremony</h3>
-    <p>The Department Cup officially begins on Monday. All teams should report by 3PM.</p>
+    <p>The Department Cup begins Monday at 3PM. All teams should report early.</p>
   </div>
 
   <div class="card">
-    <h3>Referee Update</h3>
-    <p>All referees must attend the briefing tomorrow by 12PM.</p>
+    <h3>Disciplinary Warning</h3>
+    <p>Any misconduct will result in suspension or disqualification.</p>
   </div>
 
   <div class="card">
-    <h3>Fair Play Notice</h3>
-    <p>Any violent conduct will result in immediate disqualification.</p>
+    <h3>Live Updates</h3>
+    <p>All match updates will be posted immediately after full time.</p>
   </div>
 </div>
 
@@ -148,10 +188,10 @@ th,td{
     <h3>Group A</h3>
     <table>
       <tr><th>Team</th><th>P</th><th>GD</th><th>PTS</th></tr>
-      <tr><td>Alpha FC</td><td>3</td><td>+4</td><td>9</td></tr>
-      <tr><td>Bravo FC</td><td>3</td><td>+1</td><td>6</td></tr>
-      <tr><td>Charlie FC</td><td>3</td><td>-2</td><td>3</td></tr>
-      <tr><td>Delta FC</td><td>3</td><td>-3</td><td>0</td></tr>
+      <tr><td>CPE</td><td>3</td><td>+4</td><td>9</td></tr>
+      <tr><td>APE</td><td>3</td><td>+1</td><td>6</td></tr>
+      <tr><td>MEE</td><td>3</td><td>-2</td><td>3</td></tr>
+      <tr><td>CEE</td><td>3</td><td>-3</td><td>0</td></tr>
     </table>
   </div>
 
@@ -159,10 +199,10 @@ th,td{
     <h3>Group B</h3>
     <table>
       <tr><th>Team</th><th>P</th><th>GD</th><th>PTS</th></tr>
-      <tr><td>Eagle FC</td><td>3</td><td>+5</td><td>9</td></tr>
-      <tr><td>Falcon FC</td><td>3</td><td>+2</td><td>6</td></tr>
-      <tr><td>Giant FC</td><td>3</td><td>-1</td><td>3</td></tr>
-      <tr><td>Hero FC</td><td>3</td><td>-6</td><td>0</td></tr>
+      <tr><td>LAW</td><td>3</td><td>+5</td><td>9</td></tr>
+      <tr><td>MED</td><td>3</td><td>+2</td><td>6</td></tr>
+      <tr><td>BUS</td><td>3</td><td>-1</td><td>3</td></tr>
+      <tr><td>ACC</td><td>3</td><td>-6</td><td>0</td></tr>
     </table>
   </div>
 </div>
@@ -174,8 +214,7 @@ th,td{
   <button class="small-btn" onclick="showAllFixtures()">View More</button>
 
   <h2>✅ Results</h2>
-  <div class="card">Alpha FC 2 - 0 Bravo FC</div>
-  <div class="card">Charlie FC 1 - 3 Delta FC</div>
+  <div id="resultsContainer"></div>
 </div>
 
 <!-- CHAT -->
@@ -183,8 +222,8 @@ th,td{
   <h2>💬 Chat Hall</h2>
 
   <div class="chat-box" id="chatBox">
-    <p><b>Samuel:</b> Who is winning this cup?</p>
-    <p><b>James:</b> Alpha FC for sure 🔥</p>
+    <p><b>Samuel:</b> This final will be crazy 🔥</p>
+    <p><b>James:</b> CPE looks unstoppable!</p>
   </div>
 
   <div class="chat-input">
@@ -200,27 +239,53 @@ function showPage(page){
 }
 
 const fixtures=[
-"Alpha FC vs Eagle FC - 12 Aug 3PM",
-"Bravo FC vs Falcon FC - 12 Aug 5PM",
-"Charlie FC vs Giant FC - 13 Aug 2PM",
-"Delta FC vs Hero FC - 13 Aug 4PM",
-"Eagle FC vs Bravo FC - 14 Aug 3PM",
-"Falcon FC vs Alpha FC - 14 Aug 5PM",
-"Giant FC vs Delta FC - 15 Aug 3PM",
-"Hero FC vs Charlie FC - 15 Aug 5PM",
-"Alpha FC vs Giant FC - 16 Aug 3PM",
-"Bravo FC vs Hero FC - 16 Aug 5PM",
-"Charlie FC vs Eagle FC - 17 Aug 3PM",
-"Delta FC vs Falcon FC - 17 Aug 5PM"
+{date:"Mon, 16 Apr",time:"2:00 PM",home:"CPE",away:"APE"},
+{date:"Mon, 16 Apr",time:"4:00 PM",home:"MEE",away:"CEE"},
+{date:"Tue, 17 Apr",time:"3:00 PM",home:"LAW",away:"MED"},
+{date:"Wed, 18 Apr",time:"1:00 PM",home:"BUS",away:"ACC"},
+{date:"Thu, 19 Apr",time:"2:30 PM",home:"CSC",away:"PHY"},
+{date:"Fri, 20 Apr",time:"5:00 PM",home:"CHE",away:"BIO"},
+{date:"Sat, 21 Apr",time:"12:00 PM",home:"ECO",away:"POL"},
+{date:"Sun, 22 Apr",time:"6:00 PM",home:"STA",away:"GEO"},
+{date:"Mon, 23 Apr",time:"2:00 PM",home:"CIV",away:"ARC"},
+{date:"Tue, 24 Apr",time:"4:00 PM",home:"EEE",away:"BME"},
+{date:"Wed, 25 Apr",time:"3:00 PM",home:"ICE",away:"MCE"}
+];
+
+const results=[
+{date:"Mon, 10 Apr",time:"2:00 PM",home:"CPE",away:"APE",score:"2 - 1"},
+{date:"Tue, 11 Apr",time:"3:00 PM",home:"LAW",away:"MED",score:"1 - 0"}
 ];
 
 let showing=10;
+
+function createMatchCard(match,isResult=false){
+return `
+<div class="match-card">
+  <div class="match-date">${match.date}</div>
+  <div class="match-time">${match.time}</div>
+  <div class="match-teams">
+    <span>${match.home}</span>
+    <span class="vs">${isResult?match.score:"Vs"}</span>
+    <span>${match.away}</span>
+  </div>
+</div>
+`;
+}
 
 function loadFixtures(){
   const container=document.getElementById("fixtureContainer");
   container.innerHTML="";
   fixtures.slice(0,showing).forEach(f=>{
-    container.innerHTML+=`<div class="card">${f}</div>`;
+    container.innerHTML+=createMatchCard(f,false);
+  });
+}
+
+function loadResults(){
+  const container=document.getElementById("resultsContainer");
+  container.innerHTML="";
+  results.forEach(r=>{
+    container.innerHTML+=createMatchCard(r,true);
   });
 }
 
@@ -238,6 +303,7 @@ function sendMessage(){
 }
 
 loadFixtures();
+loadResults();
 </script>
 
 </body>
