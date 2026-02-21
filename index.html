@@ -3,127 +3,100 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Chat with Swipe-to-Reply</title>
+<title>Swipe-to-Reply Chat</title>
 <style>
 body, html {
-  margin: 0; padding: 0;
+  margin:0; padding:0;
   font-family: Arial, sans-serif;
-  background: #e5ddd5;
-  height: 100%;
-  overflow: hidden;
+  background:#e5ddd5;
+  height:100%;
+  overflow:hidden;
 }
-
 .chat-page {
-  display: flex;
-  flex-direction: column;
-  height: 100%;
+  display:flex;
+  flex-direction:column;
+  height:100%;
 }
-
 .chat-messages {
-  flex: 1;
-  overflow-y: auto;
-  padding: 15px;
+  flex:1;
+  overflow-y:auto;
+  padding:15px;
   scroll-behavior: smooth;
 }
-
 .message {
-  max-width: 75%;
-  margin-bottom: 12px;
-  padding: 10px 14px;
-  border-radius: 10px;
-  font-size: 18px;
-  position: relative;
-  word-wrap: break-word;
+  max-width:75%;
+  margin-bottom:12px;
+  padding:10px 14px;
+  border-radius:10px;
+  font-size:18px;
+  position:relative;
+  word-wrap:break-word;
+  background:white;
   transition: transform 0.2s;
 }
-
-.message.other { background: white; align-self: flex-start; }
-.message.you { background: #dcf8c6; align-self: flex-end; }
-
-.sender { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
-.timestamp { font-size: 12px; opacity: 0.6; text-align: right; margin-top: 4px; }
-
-.reply-highlight { border-left: 4px solid #25d366; padding-left: 8px; opacity: 0.8; }
+.message.you { background:#dcf8c6; align-self:flex-end; }
+.sender { font-weight:bold; font-size:14px; margin-bottom:4px; }
+.timestamp { font-size:12px; opacity:0.6; text-align:right; margin-top:4px; }
+.reply-highlight { border-left:4px solid #25d366; padding-left:8px; opacity:0.8; }
 
 .chat-input-container {
-  position: relative;
-  bottom: 0; left: 0; right: 0;
-  background: #f0f0f0;
-  padding: 5px 10px;
-  border-top: 1px solid #ccc;
-  display: flex;
-  flex-direction: column;
-  z-index: 10;
+  position:relative;
+  bottom:0; left:0; right:0;
+  background:#f0f0f0;
+  padding:5px 10px;
+  border-top:1px solid #ccc;
+  display:flex;
+  flex-direction:column;
+  z-index:10;
 }
-
 .reply-bar {
-  background: #f5f5f5;
-  padding: 5px 10px;
-  border-left: 4px solid #25d366;
-  font-size: 14px;
-  cursor: pointer;
-  display: none;
-  margin-bottom: 5px;
+  background:#f5f5f5;
+  padding:5px 10px;
+  border-left:4px solid #25d366;
+  font-size:14px;
+  cursor:pointer;
+  display:none;
+  margin-bottom:5px;
+  white-space: pre-wrap;
 }
-
 .chat-input-container textarea {
-  resize: none;
-  overflow: hidden;
-  min-height: 40px;
-  font-size: 18px;
-  border-radius: 25px;
-  border: 1px solid #ccc;
-  padding: 10px 14px;
-  width: 100%;
-  outline: none;
-  box-sizing: border-box;
+  resize:none;
+  overflow:hidden;
+  min-height:40px;
+  font-size:18px;
+  border-radius:25px;
+  border:1px solid #ccc;
+  padding:10px 14px;
+  width:100%;
+  outline:none;
+  box-sizing:border-box;
 }
-
 .chat-input-container button {
-  margin-top: 5px;
-  align-self: flex-end;
-  padding: 10px 20px;
-  font-size: 18px;
-  border: none;
-  border-radius: 25px;
-  background: #075e54;
-  color: white;
-  cursor: pointer;
+  margin-top:5px;
+  align-self:flex-end;
+  padding:10px 20px;
+  font-size:18px;
+  border:none;
+  border-radius:25px;
+  background:#075e54;
+  color:white;
+  cursor:pointer;
 }
-
-/* Scrollbar */
-.chat-messages::-webkit-scrollbar {
-  width: 6px;
-}
-.chat-messages::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,0.2);
-  border-radius: 3px;
-}
+.chat-messages::-webkit-scrollbar { width:6px; }
+.chat-messages::-webkit-scrollbar-thumb { background-color:rgba(0,0,0,0.2); border-radius:3px; }
 </style>
 </head>
 <body>
 
 <div class="chat-page">
   <div class="chat-messages" id="messages">
-    <div class="message other" data-id="1">
-      <div class="sender">Francis</div>
-      How far na
-      <div class="timestamp">2:01 PM</div>
-    </div>
-    <div class="message you" data-id="2">
-      <div class="sender">You</div>
-      Let's win this Cup! 💪
-      <div class="timestamp">2:02 PM</div>
-    </div>
-    <div class="message other" data-id="3">
-      <div class="sender">Samuel</div>
-      CPE looks unstoppable!
-      <div class="timestamp">2:03 PM</div>
-    </div>
+    <div class="message other" data-id="1"><div class="sender">Francis</div>How far na<div class="timestamp">2:01 PM</div></div>
+    <div class="message you" data-id="2"><div class="sender">You</div>Let's win this Cup! 💪<div class="timestamp">2:02 PM</div></div>
+    <div class="message other" data-id="3"><div class="sender">Samuel</div>CPE looks unstoppable!<div class="timestamp">2:03 PM</div></div>
   </div>
 
   <div class="chat-input-container">
-    <div class="reply-bar" id="replyBar">Replying to ...</div>
+    <div class="reply-bar" id="replyBar"></div>
     <textarea id="msgInput" placeholder="Type a message"></textarea>
     <button id="sendBtn">Send</button>
   </div>
@@ -145,84 +118,93 @@ input.addEventListener('input', () => {
 // Send message
 function sendMessage() {
   const text = input.value.trim();
-  if (!text) return;
+  if(!text) return;
 
   const now = new Date();
-  const hours = now.getHours() % 12 || 12;
+  const hours = now.getHours()%12||12;
   const minutes = now.getMinutes().toString().padStart(2,'0');
-  const period = now.getHours() >= 12 ? 'PM':'AM';
+  const period = now.getHours()>=12?'PM':'AM';
   const timestamp = `${hours}:${minutes} ${period}`;
 
   const div = document.createElement('div');
-  div.className = 'message you';
-  div.dataset.id = Date.now();
+  div.className='message you';
+  div.dataset.id=Date.now();
 
   div.innerHTML = `
     <div class="sender">You</div>
-    ${replyMessageId ? `<i>Reply to ${document.querySelector('.message[data-id="'+replyMessageId+'"] .sender').textContent}.</i><br>` : ''}
+    ${replyMessageId ? `<i>Reply to ${document.querySelector('.message[data-id="'+replyMessageId+'"] .sender').textContent}:</i><br>
+    ${document.querySelector('.message[data-id="'+replyMessageId+'"]').innerText.split('\n').slice(1,2).join('')}</br>`:''}
     ${text}
     <div class="timestamp">${timestamp}</div>
   `;
   messages.appendChild(div);
-  messages.scrollTop = messages.scrollHeight;
+  messages.scrollTop=messages.scrollHeight;
 
-  input.value = '';
-  input.style.height = 'auto';
-  replyBar.style.display = 'none';
-  replyMessageId = null;
+  input.value='';
+  input.style.height='auto';
+  replyBar.style.display='none';
+  replyMessageId=null;
 }
 
-// Send button & Enter key
+// Send button & Enter
 sendBtn.addEventListener('click', sendMessage);
-input.addEventListener('keydown', e => { if(e.key==='Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); } });
+input.addEventListener('keydown', e => {if(e.key==='Enter' && !e.shiftKey){e.preventDefault(); sendMessage();}});
 
-// Swipe / click to reply
-let startX = 0;
-messages.addEventListener('touchstart', e => {
-  const msgDiv = e.target.closest('.message');
-  if(!msgDiv || msgDiv.classList.contains('you')) return;
-  startX = e.touches[0].clientX;
+// Swipe to reply - mobile
+let startX=0;
+messages.addEventListener('touchstart', e=>{
+  const msg=e.target.closest('.message');
+  if(!msg||msg.classList.contains('you')) return;
+  startX=e.touches[0].clientX;
 });
 
-messages.addEventListener('touchend', e => {
-  const msgDiv = e.target.closest('.message');
-  if(!msgDiv || msgDiv.classList.contains('you')) return;
-  const endX = e.changedTouches[0].clientX;
-  if(endX - startX > 50) { // swipe right
-    startReply(msgDiv);
+messages.addEventListener('touchmove', e=>{
+  const msg=e.target.closest('.message');
+  if(!msg||msg.classList.contains('you')) return;
+  const dx=e.touches[0].clientX - startX;
+  if(dx>0) msg.style.transform=`translateX(${dx}px)`;
+});
+
+messages.addEventListener('touchend', e=>{
+  const msg=e.target.closest('.message');
+  if(!msg||msg.classList.contains('you')) return;
+  const dx=e.changedTouches[0].clientX - startX;
+  msg.style.transform='translateX(0px)';
+  if(dx>80){ // threshold
+    startReply(msg);
   }
 });
 
-// Click to reply (desktop)
-messages.addEventListener('click', e => {
-  const msgDiv = e.target.closest('.message');
-  if(!msgDiv || msgDiv.classList.contains('you')) return;
-  startReply(msgDiv);
+// Click to reply - desktop
+messages.addEventListener('click', e=>{
+  const msg=e.target.closest('.message');
+  if(!msg||msg.classList.contains('you')) return;
+  startReply(msg);
 });
 
-function startReply(msgDiv) {
-  document.querySelectorAll('.message').forEach(m => m.classList.remove('reply-highlight'));
-  msgDiv.classList.add('reply-highlight');
-  replyMessageId = msgDiv.dataset.id;
+function startReply(msg){
+  document.querySelectorAll('.message').forEach(m=>m.classList.remove('reply-highlight'));
+  msg.classList.add('reply-highlight');
+  replyMessageId=msg.dataset.id;
 
-  const sender = msgDiv.querySelector('.sender').textContent;
-  const text = msgDiv.innerText.split('\n')[1] || '';
-  replyBar.innerText = `Replying to ${sender}.\n${text}`;
-  replyBar.style.display = 'block';
+  const sender=msg.querySelector('.sender').textContent;
+  const text=msg.innerText.split('\n').slice(1).join('\n');
+  replyBar.innerText=`Replying to ${sender}:\n${text}`;
+  replyBar.style.display='block';
   input.focus();
 }
 
-// Tap reply bar to scroll to original message
-replyBar.addEventListener('click', () => {
+// Tap reply bar to scroll to original
+replyBar.addEventListener('click', ()=>{
   if(!replyMessageId) return;
-  const targetMsg = document.querySelector('.message[data-id="'+replyMessageId+'"]');
-  if(targetMsg) {
-    targetMsg.scrollIntoView({behavior: 'smooth', block: 'center'});
-    targetMsg.classList.add('reply-highlight');
-    setTimeout(() => targetMsg.classList.remove('reply-highlight'), 1500);
+  const target=document.querySelector('.message[data-id="'+replyMessageId+'"]');
+  if(target){
+    target.scrollIntoView({behavior:'smooth', block:'center'});
+    target.classList.add('reply-highlight');
+    setTimeout(()=>target.classList.remove('reply-highlight'),1500);
   }
 });
 </script>
 
 </body>
-  </html>
+</html>
