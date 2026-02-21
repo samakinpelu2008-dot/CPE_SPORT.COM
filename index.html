@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>WhatsApp-Style Chat - Final HTML Version</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Floating Input Demo</title>
 <style>
 body, html {
   margin: 0;
@@ -21,16 +21,16 @@ body, html {
   width: 100%;
 }
 
-/* Scrollable chat container */
+/* Scrollable messages */
 .chat-messages {
   flex: 1;
   overflow-y: auto;
   padding: 15px;
-  padding-bottom: 120px; /* space for input */
+  padding-bottom: 80px; /* space for normal bar */
   scroll-behavior: smooth;
 }
 
-/* Message bubbles */
+/* Messages */
 .message {
   max-width: 75%;
   margin-bottom: 12px;
@@ -38,18 +38,16 @@ body, html {
   border-radius: 10px;
   font-size: 18px;
   position: relative;
-  word-wrap: break-word;
 }
 
 .message.other { background: white; align-self: flex-start; }
 .message.you { background: #dcf8c6; align-self: flex-end; }
 
-/* Sender + timestamp */
 .sender { font-weight: bold; font-size: 14px; margin-bottom: 4px; }
 .timestamp { font-size: 12px; opacity: 0.6; text-align: right; margin-top: 4px; }
 
-/* Input bar container */
-.chat-input-container {
+/* Normal placeholder bar */
+.normal-bar {
   position: absolute;
   bottom: 0;
   left: 0;
@@ -58,10 +56,34 @@ body, html {
   padding: 10px;
   border-top: 1px solid #ccc;
   display: flex;
-  z-index: 10;
+  justify-content: center;
+  z-index: 5;
+  cursor: text;
 }
 
-.chat-input-container input {
+.normal-bar span {
+  background: white;
+  padding: 12px 16px;
+  border-radius: 25px;
+  font-size: 18px;
+  color: #555;
+}
+
+/* Floating typing bar */
+.floating-bar {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px; /* initial offset, will adjust */
+  background: #f0f0f0;
+  padding: 10px;
+  border-top: 1px solid #ccc;
+  display: flex;
+  z-index: 10;
+  transition: bottom 0.25s;
+}
+
+.floating-bar input {
   flex: 1;
   padding: 12px 16px;
   font-size: 18px;
@@ -70,7 +92,7 @@ body, html {
   outline: none;
 }
 
-.chat-input-container button {
+.floating-bar button {
   margin-left: 10px;
   padding: 12px 20px;
   font-size: 18px;
@@ -80,119 +102,74 @@ body, html {
   color: white;
   cursor: pointer;
 }
-
-/* Swipe to reply highlight */
-.message.swipe-reply {
-  border-left: 4px solid #25d366;
-  padding-left: 8px;
-  opacity: 0.7;
-}
-
-/* Scrollbar styling */
-.chat-messages::-webkit-scrollbar {
-  width: 6px;
-}
-.chat-messages::-webkit-scrollbar-thumb {
-  background-color: rgba(0,0,0,0.2);
-  border-radius: 3px;
-}
 </style>
 </head>
 <body>
 
 <div class="chat-page">
   <div class="chat-messages" id="messages">
-    <div class="message other" data-id="1">
-      <div class="sender">Samuel</div>
-      Hey guys! Welcome to the Cup 🔥
-      <div class="timestamp">2:01 PM</div>
-    </div>
-    <div class="message you" data-id="2">
-      <div class="sender">You</div>
-      Let's win this! 💪
-      <div class="timestamp">2:02 PM</div>
-    </div>
-    <div class="message other" data-id="3">
-      <div class="sender">James</div>
-      CPE looks unstoppable this year!
-      <div class="timestamp">2:03 PM</div>
-    </div>
+    <div class="message other"><div class="sender">Samuel</div>Hello! Welcome to the Cup 🔥<div class="timestamp">2:01 PM</div></div>
+    <div class="message you"><div class="sender">You</div>Let's win this! 💪<div class="timestamp">2:02 PM</div></div>
+    <div class="message other"><div class="sender">James</div>CPE looks unstoppable this year!<div class="timestamp">2:03 PM</div></div>
   </div>
 
-  <div class="chat-input-container">
+  <!-- Normal bar -->
+  <div class="normal-bar" id="normalBar"><span>Type a message</span></div>
+
+  <!-- Floating typing bar -->
+  <div class="floating-bar" id="floatingBar" style="display:none;">
     <input type="text" id="msgInput" placeholder="Type a message">
-    <button onclick="sendMessage()">Send</button>
+    <button id="sendBtn">Send</button>
   </div>
 </div>
 
 <script>
+const normalBar = document.getElementById('normalBar');
+const floatingBar = document.getElementById('floatingBar');
 const messages = document.getElementById('messages');
 const input = document.getElementById('msgInput');
-let replyMessageId = null;
+const sendBtn = document.getElementById('sendBtn');
 
-// Send message function
+// Tap normal bar -> show floating bar
+normalBar.addEventListener('click', () => {
+  normalBar.style.display = 'none';
+  floatingBar.style.display = 'flex';
+
+  // Simulate keyboard height (approx)
+  let kbHeight = window.innerHeight * 0.35; // 35% of screen
+  floatingBar.style.bottom = kbHeight + 'px';
+
+  input.focus();
+});
+
+// Close floating bar when keyboard is dismissed
+input.addEventListener('blur', () => {
+  setTimeout(() => { // small delay for mobile
+    floatingBar.style.display = 'none';
+    normalBar.style.display = 'flex';
+  }, 100);
+});
+
+// Send message
 function sendMessage() {
   const text = input.value.trim();
   if(!text) return;
-
-  const msgDiv = document.createElement('div');
-  msgDiv.className = 'message you';
   const now = new Date();
   const hours = now.getHours() % 12 || 12;
   const minutes = now.getMinutes().toString().padStart(2,'0');
   const period = now.getHours() >= 12 ? 'PM':'AM';
   const timestamp = `${hours}:${minutes} ${period}`;
 
-  msgDiv.innerHTML = `
-    <div class="sender">You</div>
-    ${replyMessageId ? `<i>Replying to: ${document.querySelector('.message[data-id="'+replyMessageId+'"] .sender').textContent}</i><br>` : ''}
-    ${text}
-    <div class="timestamp">${timestamp}</div>
-  `;
-
-  messages.appendChild(msgDiv);
+  const div = document.createElement('div');
+  div.className = 'message you';
+  div.innerHTML = `<div class="sender">You</div>${text}<div class="timestamp">${timestamp}</div>`;
+  messages.appendChild(div);
   messages.scrollTop = messages.scrollHeight;
   input.value = '';
-  replyMessageId = null;
-
-  // remove highlights
-  document.querySelectorAll('.message').forEach(m => m.classList.remove('swipe-reply'));
 }
 
-// Swipe-to-reply (mobile)
-let startX = 0;
-messages.addEventListener('touchstart', e => {
-  const msgDiv = e.target.closest('.message');
-  if(!msgDiv || msgDiv.classList.contains('you')) return;
-  startX = e.touches[0].clientX;
-});
-
-messages.addEventListener('touchend', e => {
-  const msgDiv = e.target.closest('.message');
-  if(!msgDiv || msgDiv.classList.contains('you')) return;
-  const endX = e.changedTouches[0].clientX;
-  if(startX - endX < -50) { // swipe right
-    document.querySelectorAll('.message').forEach(m => m.classList.remove('swipe-reply'));
-    msgDiv.classList.add('swipe-reply');
-    replyMessageId = msgDiv.dataset.id;
-    input.focus();
-  }
-});
-
-// Click-to-reply for desktop
-messages.addEventListener('click', function(e){
-  const msgDiv = e.target.closest('.message');
-  if(!msgDiv || msgDiv.classList.contains('you')) return;
-  document.querySelectorAll('.message').forEach(m=>m.classList.remove('swipe-reply'));
-  msgDiv.classList.add('swipe-reply');
-  replyMessageId = msgDiv.dataset.id;
-  input.focus();
-});
-
-// Enter key to send
-input.addEventListener('keydown', function(e){
-  if(e.key === 'Enter') sendMessage();
-});
+sendBtn.addEventListener('click', sendMessage);
+input.addEventListener('keydown', e => { if(e.key==='Enter') sendMessage(); });
 </script>
 
 </body>
