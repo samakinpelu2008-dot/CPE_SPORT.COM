@@ -2,250 +2,242 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Dynamic Tournament Manager - Test Version</title>
+<title>University Cup</title>
 <style>
-body { font-family: Arial; background:#0f172a; color:white; padding:20px; }
-h2 { color:gold; margin-top:40px; }
-.group, .stage { background:#1e293b; padding:15px; margin:15px 0; border-radius:10px; }
-button { padding:5px 10px; margin:5px; cursor:pointer; }
-input { width:50px; text-align:center; }
-table { width:100%; border-collapse:collapse; margin-top:10px; }
-th, td { border:1px solid #444; padding:5px; text-align:center; }
-.fixture { margin:5px 0; }
-.small { font-size:12px; opacity:0.8; }
+body{
+  margin:0;
+  font-family:Arial;
+  background:#0f172a;
+  color:white;
+}
+
+header{
+  background:#111827;
+  padding:15px;
+  text-align:center;
+  font-size:22px;
+  font-weight:bold;
+  color:gold;
+}
+
+nav{
+  display:flex;
+  justify-content:space-around;
+  background:#1e293b;
+  padding:10px;
+}
+
+nav button{
+  background:none;
+  border:none;
+  color:white;
+  font-size:15px;
+  cursor:pointer;
+}
+
+nav button:hover{
+  color:gold;
+}
+
+.page{
+  display:none;
+  padding:20px;
+}
+
+.active{
+  display:block;
+}
+
+.card{
+  background:#1e293b;
+  padding:15px;
+  border-radius:10px;
+  margin:10px 0;
+}
+
+.small-btn{
+  display:block;
+  margin:15px auto;
+  padding:6px 12px;
+  background:#2563eb;
+  border:none;
+  border-radius:6px;
+  color:white;
+  cursor:pointer;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-top:10px;
+}
+
+th,td{
+  border:1px solid #444;
+  padding:5px;
+  text-align:center;
+  font-size:13px;
+}
+
+.chat-box{
+  background:#1e293b;
+  height:300px;
+  overflow-y:auto;
+  padding:10px;
+  border-radius:10px;
+}
+
+.chat-input{
+  margin-top:10px;
+  display:flex;
+}
+
+.chat-input input{
+  flex:1;
+  padding:8px;
+  border:none;
+  border-radius:5px;
+}
+
+.chat-input button{
+  padding:8px;
+  margin-left:5px;
+  border:none;
+  background:#2563eb;
+  color:white;
+  border-radius:5px;
+}
 </style>
 </head>
 <body>
 
-<h1>🏆 Tournament Manager (Test)</h1>
+<header>🏆 UNIVERSITY DEPARTMENT CUP</header>
 
-<div id="groupsContainer"></div>
+<nav>
+  <button onclick="showPage('home')">Home</button>
+  <button onclick="showPage('tables')">Tables</button>
+  <button onclick="showPage('fixtures')">Fixtures/Results</button>
+  <button onclick="showPage('chat')">Chat Hall</button>
+</nav>
 
-<button onclick="proceedNextStage()">Proceed To Next Stage</button>
+<!-- HOME -->
+<div id="home" class="page active">
+  <h2>📢 Admin News</h2>
 
-<div id="nextStage"></div>
+  <div class="card">
+    <h3>Opening Ceremony</h3>
+    <p>The Department Cup officially begins on Monday. All teams should report by 3PM.</p>
+  </div>
 
-<h2>📅 Fixtures</h2>
-<div id="fixturesList"></div>
+  <div class="card">
+    <h3>Referee Update</h3>
+    <p>All referees must attend the briefing tomorrow by 12PM.</p>
+  </div>
 
-<h2>✅ Results</h2>
-<div id="resultsList"></div>
+  <div class="card">
+    <h3>Fair Play Notice</h3>
+    <p>Any violent conduct will result in immediate disqualification.</p>
+  </div>
+</div>
+
+<!-- TABLES -->
+<div id="tables" class="page">
+  <h2>📊 Group Tables</h2>
+
+  <div class="card">
+    <h3>Group A</h3>
+    <table>
+      <tr><th>Team</th><th>P</th><th>GD</th><th>PTS</th></tr>
+      <tr><td>Alpha FC</td><td>3</td><td>+4</td><td>9</td></tr>
+      <tr><td>Bravo FC</td><td>3</td><td>+1</td><td>6</td></tr>
+      <tr><td>Charlie FC</td><td>3</td><td>-2</td><td>3</td></tr>
+      <tr><td>Delta FC</td><td>3</td><td>-3</td><td>0</td></tr>
+    </table>
+  </div>
+
+  <div class="card">
+    <h3>Group B</h3>
+    <table>
+      <tr><th>Team</th><th>P</th><th>GD</th><th>PTS</th></tr>
+      <tr><td>Eagle FC</td><td>3</td><td>+5</td><td>9</td></tr>
+      <tr><td>Falcon FC</td><td>3</td><td>+2</td><td>6</td></tr>
+      <tr><td>Giant FC</td><td>3</td><td>-1</td><td>3</td></tr>
+      <tr><td>Hero FC</td><td>3</td><td>-6</td><td>0</td></tr>
+    </table>
+  </div>
+</div>
+
+<!-- FIXTURES -->
+<div id="fixtures" class="page">
+  <h2>📅 Fixtures</h2>
+  <div id="fixtureContainer"></div>
+  <button class="small-btn" onclick="showAllFixtures()">View More</button>
+
+  <h2>✅ Results</h2>
+  <div class="card">Alpha FC 2 - 0 Bravo FC</div>
+  <div class="card">Charlie FC 1 - 3 Delta FC</div>
+</div>
+
+<!-- CHAT -->
+<div id="chat" class="page">
+  <h2>💬 Chat Hall</h2>
+
+  <div class="chat-box" id="chatBox">
+    <p><b>Samuel:</b> Who is winning this cup?</p>
+    <p><b>James:</b> Alpha FC for sure 🔥</p>
+  </div>
+
+  <div class="chat-input">
+    <input type="text" id="chatInput" placeholder="Type message...">
+    <button onclick="sendMessage()">Send</button>
+  </div>
+</div>
 
 <script>
-let tournament = {
-  groups:{},
-  fixtures:[],
-  results:[],
-  stages:[]
-};
+function showPage(page){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(page).classList.add('active');
+}
 
-const groupLetters = ["A","B","C","D","E","F","G","H","I"];
+const fixtures=[
+"Alpha FC vs Eagle FC - 12 Aug 3PM",
+"Bravo FC vs Falcon FC - 12 Aug 5PM",
+"Charlie FC vs Giant FC - 13 Aug 2PM",
+"Delta FC vs Hero FC - 13 Aug 4PM",
+"Eagle FC vs Bravo FC - 14 Aug 3PM",
+"Falcon FC vs Alpha FC - 14 Aug 5PM",
+"Giant FC vs Delta FC - 15 Aug 3PM",
+"Hero FC vs Charlie FC - 15 Aug 5PM",
+"Alpha FC vs Giant FC - 16 Aug 3PM",
+"Bravo FC vs Hero FC - 16 Aug 5PM",
+"Charlie FC vs Eagle FC - 17 Aug 3PM",
+"Delta FC vs Falcon FC - 17 Aug 5PM"
+];
 
-function initGroups(){
-  groupLetters.forEach(letter=>{
-    tournament.groups[letter]={ teams:[], matches:[], table:[] };
-    createGroupUI(letter);
+let showing=10;
+
+function loadFixtures(){
+  const container=document.getElementById("fixtureContainer");
+  container.innerHTML="";
+  fixtures.slice(0,showing).forEach(f=>{
+    container.innerHTML+=`<div class="card">${f}</div>`;
   });
 }
 
-function createGroupUI(letter){
-  const container = document.getElementById("groupsContainer");
-  const div = document.createElement("div");
-  div.className="group";
-  div.id="group"+letter;
-  div.innerHTML=`
-    <h2>Group ${letter}</h2>
-    <input type="text" placeholder="Team name" id="teamInput${letter}">
-    <button onclick="addTeam('${letter}')">Add Team</button>
-    <div id="teams${letter}"></div>
-    <div id="fixtures${letter}"></div>
-    <div id="table${letter}"></div>
-  `;
-  container.appendChild(div);
+function showAllFixtures(){
+  showing=fixtures.length;
+  loadFixtures();
 }
 
-function addTeam(letter){
-  const input=document.getElementById("teamInput"+letter);
-  const name=input.value.trim();
-  if(!name) return;
-  tournament.groups[letter].teams.push(name);
+function sendMessage(){
+  const input=document.getElementById("chatInput");
+  if(!input.value) return;
+  document.getElementById("chatBox").innerHTML+=
+    `<p><b>You:</b> ${input.value}</p>`;
   input.value="";
-  renderTeams(letter);
-  generateGroupFixtures(letter);
 }
 
-function renderTeams(letter){
-  document.getElementById("teams"+letter).innerHTML=
-    "<b>Teams:</b> "+tournament.groups[letter].teams.join(", ");
-}
-
-function generateGroupFixtures(letter){
-  const group=tournament.groups[letter];
-  group.matches=[];
-  group.table=[];
-  const teams=group.teams;
-
-  teams.forEach(t=>{
-    group.table.push({team:t,P:0,W:0,D:0,L:0,GF:0,GA:0,GD:0,PTS:0});
-  });
-
-  for(let i=0;i<teams.length;i++){
-    for(let j=i+1;j<teams.length;j++){
-      let match={
-        team1:teams[i],
-        team2:teams[j],
-        group:letter,
-        score1:null,
-        score2:null,
-        date:null
-      };
-      group.matches.push(match);
-      tournament.fixtures.push(match);
-    }
-  }
-  renderGroupFixtures(letter);
-  renderTable(letter);
-  renderFixturesPage();
-}
-
-function renderGroupFixtures(letter){
-  const div=document.getElementById("fixtures"+letter);
-  div.innerHTML="<b>Matches:</b>";
-  tournament.groups[letter].matches.forEach((m,index)=>{
-    div.innerHTML+=`
-      <div class="fixture">
-        ${m.team1} 
-        <input type="number" onchange="setScore('${letter}',${index},1,this.value)">
-        -
-        <input type="number" onchange="setScore('${letter}',${index},2,this.value)">
-        ${m.team2}
-        <span class="small">${m.date?m.date:"TBD"}</span>
-        <button onclick="setDate('${letter}',${index})">Set Time</button>
-      </div>
-    `;
-  });
-}
-
-function setDate(letter,index){
-  const d=prompt("Enter date/time (YYYY-MM-DD HH:MM)");
-  if(!d) return;
-  tournament.groups[letter].matches[index].date=d;
-  renderGroupFixtures(letter);
-  renderFixturesPage();
-}
-
-function setScore(letter,index,team,val){
-  const match=tournament.groups[letter].matches[index];
-  if(team==1) match.score1=parseInt(val);
-  else match.score2=parseInt(val);
-
-  if(match.score1!=null && match.score2!=null){
-    updateTable(letter,match);
-    tournament.results.push(match);
-    tournament.fixtures=tournament.fixtures.filter(m=>m!==match);
-    renderFixturesPage();
-    renderResults();
-  }
-}
-
-function updateTable(letter,match){
-  const table=tournament.groups[letter].table;
-  let t1=table.find(t=>t.team===match.team1);
-  let t2=table.find(t=>t.team===match.team2);
-
-  t1.P++; t2.P++;
-  t1.GF+=match.score1; t1.GA+=match.score2;
-  t2.GF+=match.score2; t2.GA+=match.score1;
-
-  if(match.score1>match.score2){ t1.W++; t1.PTS+=3; t2.L++; }
-  else if(match.score2>match.score1){ t2.W++; t2.PTS+=3; t1.L++; }
-  else { t1.D++; t2.D++; t1.PTS++; t2.PTS++; }
-
-  table.forEach(t=>t.GD=t.GF-t.GA);
-  table.sort((a,b)=>b.PTS-a.PTS || b.GD-a.GD || b.GF-a.GF);
-  renderTable(letter);
-}
-
-function renderTable(letter){
-  const table=tournament.groups[letter].table;
-  let html="<table><tr><th>Team</th><th>P</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>PTS</th></tr>";
-  table.forEach(t=>{
-    html+=`<tr>
-      <td>${t.team}</td>
-      <td>${t.P}</td>
-      <td>${t.W}</td>
-      <td>${t.D}</td>
-      <td>${t.L}</td>
-      <td>${t.GD}</td>
-      <td>${t.PTS}</td>
-    </tr>`;
-  });
-  html+="</table>";
-  document.getElementById("table"+letter).innerHTML=html;
-}
-
-function renderFixturesPage(){
-  let sorted=[...tournament.fixtures].sort((a,b)=>{
-    if(!a.date) return 1;
-    if(!b.date) return -1;
-    return new Date(a.date)-new Date(b.date);
-  });
-  document.getElementById("fixturesList").innerHTML=
-    sorted.map(m=>`${m.team1} vs ${m.team2} (${m.date||"TBD"})`).join("<br>");
-}
-
-function renderResults(){
-  document.getElementById("resultsList").innerHTML=
-    tournament.results.map(m=>`${m.team1} ${m.score1} - ${m.score2} ${m.team2}`).join("<br>");
-}
-
-function proceedNextStage(){
-  const stageName=prompt("Enter Stage Name (e.g Quarter Final)");
-  if(!stageName) return;
-  let qualifiers=[];
-  groupLetters.forEach(letter=>{
-    const group=tournament.groups[letter];
-    if(group.table.length>0){
-      const pick=prompt(`From Group ${letter}, type team names separated by comma to qualify`);
-      if(pick){
-        pick.split(",").forEach(name=>{
-          qualifiers.push(name.trim());
-        });
-      }
-    }
-  });
-
-  const mode=prompt("Type AUTO or MANUAL matchmaking?");
-  let matches=[];
-  if(mode==="AUTO"){
-    for(let i=0;i<qualifiers.length;i+=2){
-      if(qualifiers[i+1])
-      matches.push({team1:qualifiers[i],team2:qualifiers[i+1]});
-    }
-  }else{
-    while(qualifiers.length>1){
-      const t1=prompt("Enter first team");
-      const t2=prompt("Enter second team");
-      matches.push({team1:t1,team2:t2});
-      qualifiers=qualifiers.filter(t=>t!==t1 && t!==t2);
-    }
-  }
-
-  tournament.stages.push({name:stageName,matches:matches});
-  renderStage();
-}
-
-function renderStage(){
-  const div=document.getElementById("nextStage");
-  div.innerHTML="";
-  tournament.stages.forEach(stage=>{
-    div.innerHTML+=`<div class="stage"><h2>${stage.name}</h2>`+
-    stage.matches.map(m=>`${m.team1} vs ${m.team2}`).join("<br>")+
-    "</div>";
-  });
-}
-
-initGroups();
+loadFixtures();
 </script>
 
 </body>
