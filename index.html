@@ -2,112 +2,112 @@
 <html>
 <head>
 <meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Sammy Chat</title>
 
 <style>
+* { box-sizing: border-box; }
+
 body {
-    margin: 0;
-    font-family: Arial, sans-serif;
-    background: #f0f2f5;
-    display: flex;
-    flex-direction: column;
-    height: 100vh;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background: #f0f2f5;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
 }
 
 header {
-    background: #0d6efd;
-    color: white;
-    padding: 15px;
-    font-size: 18px;
-    font-weight: bold;
+  background: #0d6efd;
+  color: white;
+  padding: 16px;
+  font-weight: bold;
+  font-size: 18px;
 }
 
 #chat {
-    flex: 1;
-    overflow-y: auto;
-    padding: 10px;
+  flex: 1;
+  overflow-y: auto;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
 }
+
+.message-wrapper {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.me { justify-content: flex-end; }
+.other { justify-content: flex-start; }
 
 .message {
-    max-width: 70%;
-    padding: 10px;
-    border-radius: 12px;
-    margin-bottom: 8px;
-    position: relative;
-    word-wrap: break-word;
+  max-width: 75%;
+  padding: 10px 12px;
+  border-radius: 14px;
+  position: relative;
+  transition: transform 0.2s ease;
+  word-wrap: break-word;
 }
 
-.me {
-    background: #d1e7ff;
-    align-self: flex-end;
-}
+.me .message { background: #d1e7ff; }
+.other .message { background: #e4e6eb; }
 
-.other {
-    background: #e4e6eb;
-}
-
-.reply-preview {
-    background: #dcdcdc;
-    padding: 6px;
-    border-radius: 8px;
-    margin-bottom: 5px;
-    font-size: 13px;
-    cursor: pointer;
+.reply-card {
+  background: #dcdcdc;
+  border-radius: 8px;
+  padding: 6px;
+  margin-bottom: 6px;
+  font-size: 13px;
+  cursor: pointer;
 }
 
 .reply-name {
-    font-weight: bold;
-    font-size: 12px;
+  font-weight: bold;
+  font-size: 12px;
 }
 
 .highlight {
-    animation: glow 1s ease;
+  animation: glow 1s ease;
 }
 
 @keyframes glow {
-    0% { background: yellow; }
-    100% { background: inherit; }
+  0% { background: #fff3cd; }
+  100% { background: inherit; }
 }
 
 #replyBar {
-    display: none;
-    background: #ddd;
-    padding: 8px;
-    font-size: 14px;
+  display: none;
+  background: #e0e0e0;
+  padding: 8px 12px;
+  font-size: 14px;
 }
 
 #inputArea {
-    display: flex;
-    padding: 8px;
-    background: white;
+  display: flex;
+  padding: 8px;
+  background: white;
 }
 
 textarea {
-    flex: 1;
-    resize: none;
-    border-radius: 20px;
-    padding: 10px;
-    border: 1px solid #ccc;
-    outline: none;
+  flex: 1;
+  resize: none;
+  border-radius: 20px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  outline: none;
+  max-height: 120px;
+  overflow-y: auto;
 }
 
 button {
-    margin-left: 5px;
-    border: none;
-    background: #0d6efd;
-    color: white;
-    padding: 10px 15px;
-    border-radius: 50%;
-    cursor: pointer;
-}
-
-.reply-btn {
-    position: absolute;
-    right: -40px;
-    top: 50%;
-    transform: translateY(-50%);
-    font-size: 12px;
-    cursor: pointer;
+  margin-left: 6px;
+  border: none;
+  background: #0d6efd;
+  color: white;
+  padding: 10px 16px;
+  border-radius: 20px;
+  cursor: pointer;
 }
 </style>
 </head>
@@ -121,89 +121,151 @@ button {
 <div id="replyBar"></div>
 
 <div id="inputArea">
-    <textarea id="messageInput" rows="1" placeholder="Type a message..."></textarea>
-    <button onclick="sendMessage()">➤</button>
+  <textarea id="messageInput" rows="1" placeholder="Type a message..."></textarea>
+  <button onclick="sendMessage()">Send</button>
 </div>
 
 <script>
-let chat = document.getElementById("chat");
-let input = document.getElementById("messageInput");
-let replyBar = document.getElementById("replyBar");
+const chat = document.getElementById("chat");
+const input = document.getElementById("messageInput");
+const replyBar = document.getElementById("replyBar");
 
 let replyingTo = null;
-let messageCount = 0;
+let messageCounter = 0;
+let messages = {};
 
 input.addEventListener("input", function () {
-    this.style.height = "auto";
-    this.style.height = (this.scrollHeight) + "px";
+  this.style.height = "auto";
+  this.style.height = this.scrollHeight + "px";
 });
 
 function sendMessage() {
-    if (input.value.trim() === "") return;
+  if (!input.value.trim()) return;
 
-    let messageId = "msg" + messageCount++;
-    let messageDiv = document.createElement("div");
-    messageDiv.className = "message me";
-    messageDiv.id = messageId;
+  const id = "msg" + messageCounter++;
+  const text = input.value.trim();
 
-    if (replyingTo) {
-        let replyDiv = document.createElement("div");
-        replyDiv.className = "reply-preview";
-        replyDiv.innerHTML =
-            "<div class='reply-name'>" + replyingTo.name + "</div>" +
-            "<div>" + replyingTo.text + "</div>";
+  const wrapper = document.createElement("div");
+  wrapper.className = "message-wrapper me";
 
-        replyDiv.onclick = function () {
-            scrollToMessage(replyingTo.id);
-        };
+  const message = document.createElement("div");
+  message.className = "message";
+  message.id = id;
 
-        messageDiv.appendChild(replyDiv);
-    }
+  if (replyingTo) {
+    const replyCard = document.createElement("div");
+    replyCard.className = "reply-card";
+    replyCard.innerHTML =
+      "<div class='reply-name'>" + replyingTo.name + "</div>" +
+      "<div>" + replyingTo.text + "</div>";
 
-    let textDiv = document.createElement("div");
-    textDiv.innerText = input.value;
-    messageDiv.appendChild(textDiv);
+    replyCard.onclick = () => scrollToMessage(replyingTo.id);
 
-    // Reply button fallback
-    let replyBtn = document.createElement("div");
-    replyBtn.className = "reply-btn";
-    replyBtn.innerText = "Reply";
-    replyBtn.onclick = function () {
-        setReply(messageId, "You", input.value);
-    };
-    messageDiv.appendChild(replyBtn);
+    message.appendChild(replyCard);
+  }
 
-    chat.appendChild(messageDiv);
+  const textNode = document.createElement("div");
+  textNode.innerText = text;
+  message.appendChild(textNode);
 
-    input.value = "";
-    replyingTo = null;
-    replyBar.style.display = "none";
+  wrapper.appendChild(message);
+  chat.appendChild(wrapper);
 
-    chat.scrollTop = chat.scrollHeight;
+  messages[id] = { id, name: "You", text };
+
+  addSwipeToReply(message, id);
+
+  input.value = "";
+  input.style.height = "auto";
+  replyingTo = null;
+  replyBar.style.display = "none";
+
+  chat.scrollTop = chat.scrollHeight;
 }
 
 function setReply(id, name, text) {
-    replyingTo = { id: id, name: name, text: text };
-    replyBar.style.display = "block";
-    replyBar.innerHTML =
-        "Replying to <b>" + name + "</b>: " + text +
-        " <span style='float:right;cursor:pointer' onclick='cancelReply()'>✖</span>";
+  replyingTo = { id, name, text };
+  replyBar.style.display = "block";
+  replyBar.innerHTML =
+    "Replying to <b>" + name + "</b>: " + text +
+    " <span style='float:right;cursor:pointer' onclick='cancelReply()'>✖</span>";
 }
 
 function cancelReply() {
-    replyingTo = null;
-    replyBar.style.display = "none";
+  replyingTo = null;
+  replyBar.style.display = "none";
 }
 
 function scrollToMessage(id) {
-    let msg = document.getElementById(id);
-    if (msg) {
-        msg.scrollIntoView({ behavior: "smooth", block: "center" });
-        msg.classList.add("highlight");
-        setTimeout(() => {
-            msg.classList.remove("highlight");
-        }, 1000);
+  const msg = document.getElementById(id);
+  if (!msg) return;
+
+  msg.scrollIntoView({ behavior: "smooth", block: "center" });
+  msg.classList.add("highlight");
+
+  setTimeout(() => {
+    msg.classList.remove("highlight");
+  }, 1000);
+}
+
+function addSwipeToReply(element, id) {
+  let startX = 0;
+  let currentX = 0;
+  let threshold = 80;
+
+  element.addEventListener("touchstart", e => {
+    startX = e.touches[0].clientX;
+  });
+
+  element.addEventListener("touchmove", e => {
+    currentX = e.touches[0].clientX;
+    let diff = currentX - startX;
+    if (diff > 0) {
+      element.style.transform = "translateX(" + diff + "px)";
     }
+  });
+
+  element.addEventListener("touchend", () => {
+    let diff = currentX - startX;
+
+    element.style.transform = "translateX(0px)";
+
+    if (diff > threshold) {
+      const msg = messages[id];
+      setReply(id, msg.name, msg.text);
+    }
+  });
+
+  element.addEventListener("mousedown", e => {
+    startX = e.clientX;
+    element.onmousemove = move;
+    element.onmouseup = up;
+  });
+
+  function move(e) {
+    currentX = e.clientX;
+    let diff = currentX - startX;
+    if (diff > 0) {
+      element.style.transform = "translateX(" + diff + "px)";
+    }
+  }
+
+  function up() {
+    let diff = currentX - startX;
+    element.style.transform = "translateX(0px)";
+    if (diff > threshold) {
+      const msg = messages[id];
+      setReply(id, msg.name, msg.text);
+    }
+    element.onmousemove = null;
+    element.onmouseup = null;
+  }
+
+  element.addEventListener("contextmenu", e => {
+    e.preventDefault();
+    const msg = messages[id];
+    setReply(id, msg.name, msg.text);
+  });
 }
 </script>
 
