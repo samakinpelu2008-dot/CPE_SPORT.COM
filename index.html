@@ -1,129 +1,210 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>WhatsApp Swipe-to-Reply Chat</title>
+<title>Sammy Chat</title>
+
 <style>
-body, html { margin:0; padding:0; font-family:Arial,sans-serif; background:#e5ddd5; height:100%; overflow:hidden; }
-.chat-page { display:flex; flex-direction:column; height:100%; }
-.chat-messages { flex:1; overflow-y:auto; padding:15px; scroll-behavior:smooth; }
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f0f2f5;
+    display: flex;
+    flex-direction: column;
+    height: 100vh;
+}
+
+header {
+    background: #0d6efd;
+    color: white;
+    padding: 15px;
+    font-size: 18px;
+    font-weight: bold;
+}
+
+#chat {
+    flex: 1;
+    overflow-y: auto;
+    padding: 10px;
+}
+
 .message {
-  max-width:75%; margin-bottom:12px; padding:10px 14px; border-radius:10px; font-size:18px;
-  position:relative; word-wrap:break-word; transition: transform 0.2s; background:white;
+    max-width: 70%;
+    padding: 10px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+    position: relative;
+    word-wrap: break-word;
 }
-.message.you { background:#dcf8c6; align-self:flex-end; }
-.sender { font-weight:bold; font-size:14px; margin-bottom:4px; }
-.timestamp { font-size:12px; opacity:0.6; text-align:right; margin-top:4px; }
-.reply-highlight { border-left:4px solid #25d366; padding-left:8px; opacity:0.8; }
-.reply-card {
-  background:#f0f0f0; padding:4px 6px; border-radius:5px; font-size:14px;
-  color:#555; margin-bottom:6px; width:30%; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;
+
+.me {
+    background: #d1e7ff;
+    align-self: flex-end;
 }
-.chat-input-container { position:relative; bottom:0; left:0; right:0; background:#f0f0f0; padding:5px 10px; border-top:1px solid #ccc; display:flex; flex-direction:column; z-index:10; }
-.reply-bar { background:#f5f5f5; padding:5px 10px; border-left:4px solid #25d366; font-size:14px; cursor:pointer; display:none; margin-bottom:5px; white-space: pre-wrap; }
-.chat-input-container textarea { resize:none; overflow:hidden; min-height:40px; font-size:18px; border-radius:25px; border:1px solid #ccc; padding:10px 14px; width:100%; outline:none; box-sizing:border-box; }
-.chat-input-container button { margin-top:5px; align-self:flex-end; padding:10px 20px; font-size:18px; border:none; border-radius:25px; background:#075e54; color:white; cursor:pointer; }
-.chat-messages::-webkit-scrollbar { width:6px; }
-.chat-messages::-webkit-scrollbar-thumb { background-color:rgba(0,0,0,0.2); border-radius:3px; }
+
+.other {
+    background: #e4e6eb;
+}
+
+.reply-preview {
+    background: #dcdcdc;
+    padding: 6px;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.reply-name {
+    font-weight: bold;
+    font-size: 12px;
+}
+
+.highlight {
+    animation: glow 1s ease;
+}
+
+@keyframes glow {
+    0% { background: yellow; }
+    100% { background: inherit; }
+}
+
+#replyBar {
+    display: none;
+    background: #ddd;
+    padding: 8px;
+    font-size: 14px;
+}
+
+#inputArea {
+    display: flex;
+    padding: 8px;
+    background: white;
+}
+
+textarea {
+    flex: 1;
+    resize: none;
+    border-radius: 20px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    outline: none;
+}
+
+button {
+    margin-left: 5px;
+    border: none;
+    background: #0d6efd;
+    color: white;
+    padding: 10px 15px;
+    border-radius: 50%;
+    cursor: pointer;
+}
+
+.reply-btn {
+    position: absolute;
+    right: -40px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 12px;
+    cursor: pointer;
+}
 </style>
 </head>
+
 <body>
 
-<div class="chat-page">
-  <div class="chat-messages" id="messages">
-    <div class="message other" data-id="1"><div class="sender">Francis</div>How far na<div class="timestamp">2:01 PM</div></div>
-    <div class="message you" data-id="2"><div class="sender">You</div>Let's win this Cup! 💪<div class="timestamp">2:02 PM</div></div>
-    <div class="message other" data-id="3"><div class="sender">Samuel</div>CPE looks unstoppable!<div class="timestamp">2:03 PM</div></div>
-  </div>
+<header>Sammy Chat</header>
 
-  <div class="chat-input-container">
-    <div class="reply-bar" id="replyBar"></div>
-    <textarea id="msgInput" placeholder="Type a message"></textarea>
-    <button id="sendBtn">Send</button>
-  </div>
+<div id="chat"></div>
+
+<div id="replyBar"></div>
+
+<div id="inputArea">
+    <textarea id="messageInput" rows="1" placeholder="Type a message..."></textarea>
+    <button onclick="sendMessage()">➤</button>
 </div>
 
 <script>
-const messages=document.getElementById('messages');
-const input=document.getElementById('msgInput');
-const sendBtn=document.getElementById('sendBtn');
-const replyBar=document.getElementById('replyBar');
-let replyMessageId=null;
+let chat = document.getElementById("chat");
+let input = document.getElementById("messageInput");
+let replyBar = document.getElementById("replyBar");
 
-// Auto-resize textarea
-input.addEventListener('input',()=>{input.style.height='auto';input.style.height=input.scrollHeight+'px';});
+let replyingTo = null;
+let messageCount = 0;
 
-// Send message
-function sendMessage(){
-  const text=input.value.trim(); if(!text) return;
-  const now=new Date();
-  const hours=now.getHours()%12||12; const minutes=now.getMinutes().toString().padStart(2,'0'); const period=now.getHours()>=12?'PM':'AM';
-  const timestamp=`${hours}:${minutes} ${period}`;
+input.addEventListener("input", function () {
+    this.style.height = "auto";
+    this.style.height = (this.scrollHeight) + "px";
+});
 
-  const div=document.createElement('div'); div.className='message you'; div.dataset.id=Date.now();
+function sendMessage() {
+    if (input.value.trim() === "") return;
 
-  if(replyMessageId){
-    const repliedMsg=document.querySelector('.message[data-id="'+replyMessageId+'"]');
-    const sender=repliedMsg.querySelector('.sender').textContent;
-    const textSnippet=repliedMsg.innerText.split('\n').slice(1).join(' ');
-    div.innerHTML=`<div class="sender">You</div>
-      <div class="reply-card">Reply to ${sender}: ${textSnippet}</div>
-      ${text}<div class="timestamp">${timestamp}</div>`;
-  } else {
-    div.innerHTML=`<div class="sender">You</div>${text}<div class="timestamp">${timestamp}</div>`;
-  }
+    let messageId = "msg" + messageCount++;
+    let messageDiv = document.createElement("div");
+    messageDiv.className = "message me";
+    messageDiv.id = messageId;
 
-  messages.appendChild(div); messages.scrollTop=messages.scrollHeight;
-  input.value=''; input.style.height='auto'; replyBar.style.display='none'; replyMessageId=null;
+    if (replyingTo) {
+        let replyDiv = document.createElement("div");
+        replyDiv.className = "reply-preview";
+        replyDiv.innerHTML =
+            "<div class='reply-name'>" + replyingTo.name + "</div>" +
+            "<div>" + replyingTo.text + "</div>";
+
+        replyDiv.onclick = function () {
+            scrollToMessage(replyingTo.id);
+        };
+
+        messageDiv.appendChild(replyDiv);
+    }
+
+    let textDiv = document.createElement("div");
+    textDiv.innerText = input.value;
+    messageDiv.appendChild(textDiv);
+
+    // Reply button fallback
+    let replyBtn = document.createElement("div");
+    replyBtn.className = "reply-btn";
+    replyBtn.innerText = "Reply";
+    replyBtn.onclick = function () {
+        setReply(messageId, "You", input.value);
+    };
+    messageDiv.appendChild(replyBtn);
+
+    chat.appendChild(messageDiv);
+
+    input.value = "";
+    replyingTo = null;
+    replyBar.style.display = "none";
+
+    chat.scrollTop = chat.scrollHeight;
 }
 
-// Send
-sendBtn.addEventListener('click',sendMessage);
-input.addEventListener('keydown',e=>{if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage();}});
-
-// Swipe-to-reply
-let startX=0, currentMsg=null;
-messages.addEventListener('touchstart',e=>{
-  const msg=e.target.closest('.message'); if(!msg||msg.classList.contains('you')) return;
-  startX=e.touches[0].clientX; currentMsg=msg;
-});
-messages.addEventListener('touchmove',e=>{
-  if(!currentMsg) return;
-  const dx=e.touches[0].clientX-startX;
-  if(dx>0) currentMsg.style.transform=`translateX(${dx}px)`;
-});
-messages.addEventListener('touchend',e=>{
-  if(!currentMsg) return;
-  const dx=e.changedTouches[0].clientX-startX;
-  if(dx>80) startReply(currentMsg); // threshold
-  currentMsg.style.transform='translateX(0px)';
-  currentMsg=null;
-});
-
-// Click to reply desktop
-messages.addEventListener('click',e=>{
-  const msg=e.target.closest('.message'); if(!msg||msg.classList.contains('you')) return;
-  startReply(msg);
-});
-
-function startReply(msg){
-  document.querySelectorAll('.message').forEach(m=>m.classList.remove('reply-highlight'));
-  msg.classList.add('reply-highlight'); replyMessageId=msg.dataset.id;
-  const sender=msg.querySelector('.sender').textContent;
-  const text=msg.innerText.split('\n').slice(1).join('\n');
-  replyBar.innerText=`Replying to ${sender}: ${text}`; replyBar.style.display='block';
-  input.focus();
+function setReply(id, name, text) {
+    replyingTo = { id: id, name: name, text: text };
+    replyBar.style.display = "block";
+    replyBar.innerHTML =
+        "Replying to <b>" + name + "</b>: " + text +
+        " <span style='float:right;cursor:pointer' onclick='cancelReply()'>✖</span>";
 }
 
-// Tap reply bar scroll to original
-replyBar.addEventListener('click',()=>{
-  if(!replyMessageId) return;
-  const target=document.querySelector('.message[data-id="'+replyMessageId+'"]');
-  if(target){ target.scrollIntoView({behavior:'smooth',block:'center'}); target.classList.add('reply-highlight');
-    setTimeout(()=>target.classList.remove('reply-highlight'),1500);
-  }
-});
+function cancelReply() {
+    replyingTo = null;
+    replyBar.style.display = "none";
+}
+
+function scrollToMessage(id) {
+    let msg = document.getElementById(id);
+    if (msg) {
+        msg.scrollIntoView({ behavior: "smooth", block: "center" });
+        msg.classList.add("highlight");
+        setTimeout(() => {
+            msg.classList.remove("highlight");
+        }, 1000);
+    }
+}
 </script>
 
 </body>
