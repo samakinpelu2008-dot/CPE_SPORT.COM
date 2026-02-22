@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>League Tournament App</title>
+<title>League Tournament - User View</title>
 <style>
 body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;}
 .header{background:#075e54;color:white;padding:15px;font-weight:bold;text-align:center;}
@@ -11,16 +11,14 @@ nav{display:flex;justify-content:space-around;background:#25D366;padding:10px;}
 nav button{padding:8px 15px;border:none;border-radius:8px;color:white;font-weight:bold;cursor:pointer;background:#128C7E;}
 .page{display:none;padding:15px;}
 .active{display:block;}
-.group-table{border-collapse:collapse;width:100%;margin-bottom:20px;}
+.group-table{border-collapse:collapse;width:100%;margin-bottom:20px;background:white;}
 .group-table th, .group-table td{border:1px solid #ccc;padding:6px;text-align:center;}
 .fixture-card{border:1px solid #ccc;border-radius:8px;padding:10px;margin-bottom:10px;background:white;}
-input.score{width:40px;text-align:center;}
-button.set-result{padding:4px 8px;margin-left:5px;}
 </style>
 </head>
 <body>
 
-<div class="header">League Tournament App</div>
+<div class="header">League Tournament - User View</div>
 <nav>
   <button onclick="showPage('home')">Home</button>
   <button onclick="showPage('tables')">Tables</button>
@@ -30,7 +28,9 @@ button.set-result{padding:4px 8px;margin-left:5px;}
 <!-- Home Page -->
 <div id="home" class="page active">
   <h2>Admin News</h2>
-  <div id="adminNews">Welcome to the League Tournament!</div>
+  <div id="adminNews">
+    <p>Welcome to the League Tournament! Check the latest scores and standings.</p>
+  </div>
 </div>
 
 <!-- Tables Page -->
@@ -46,64 +46,62 @@ button.set-result{padding:4px 8px;margin-left:5px;}
 </div>
 
 <script>
-// --- Config ---
+// --- Config for demo ---
 const GROUPS = ['A','B','C','D','E','F','G','H','I'];
 const TEAMS_PER_GROUP = 4;
-let groups = {}; // will store team info
-let fixtures = {}; // will store fixtures for each group
 
-// --- Input Teams (admin can edit these names) ---
-for(let g=0; g<GROUPS.length; g++){
-  groups[GROUPS[g]] = [];
-  for(let t=0; t<TEAMS_PER_GROUP; t++){
-    let name = prompt(`Enter name of team ${t+1} for group ${GROUPS[g]}`, `Team ${t+1}`);
-    groups[GROUPS[g]].push({name:name,w:0,d:0,l:0,gd:0,pts:0});
-  }
-}
+// Sample groups with team names (user cannot edit)
+let groups = {
+  A: [{name:'Team A1',w:0,d:0,l:0,gd:0,pts:0},{name:'Team A2',w:0,d:0,l:0,gd:0,pts:0},{name:'Team A3',w:0,d:0,l:0,gd:0,pts:0},{name:'Team A4',w:0,d:0,l:0,gd:0,pts:0}],
+  B: [{name:'Team B1',w:0,d:0,l:0,gd:0,pts:0},{name:'Team B2',w:0,d:0,l:0,gd:0,pts:0},{name:'Team B3',w:0,d:0,l:0,gd:0,pts:0},{name:'Team B4',w:0,d:0,l:0,gd:0,pts:0}],
+  C: [{name:'Team C1',w:0,d:0,l:0,gd:0,pts:0},{name:'Team C2',w:0,d:0,l:0,gd:0,pts:0},{name:'Team C3',w:0,d:0,l:0,gd:0,pts:0},{name:'Team C4',w:0,d:0,l:0,gd:0,pts:0}],
+  D: [{name:'Team D1',w:0,d:0,l:0,gd:0,pts:0},{name:'Team D2',w:0,d:0,l:0,gd:0,pts:0},{name:'Team D3',w:0,d:0,l:0,gd:0,pts:0},{name:'Team D4',w:0,d:0,l:0,gd:0,pts:0}],
+  E: [{name:'Team E1',w:0,d:0,l:0,gd:0,pts:0},{name:'Team E2',w:0,d:0,l:0,gd:0,pts:0},{name:'Team E3',w:0,d:0,l:0,gd:0,pts:0},{name:'Team E4',w:0,d:0,l:0,gd:0,pts:0}],
+  F: [{name:'Team F1',w:0,d:0,l:0,gd:0,pts:0},{name:'Team F2',w:0,d:0,l:0,gd:0,pts:0},{name:'Team F3',w:0,d:0,l:0,gd:0,pts:0},{name:'Team F4',w:0,d:0,l:0,gd:0,pts:0}],
+  G: [{name:'Team G1',w:0,d:0,l:0,gd:0,pts:0},{name:'Team G2',w:0,d:0,l:0,gd:0,pts:0},{name:'Team G3',w:0,d:0,l:0,gd:0,pts:0},{name:'Team G4',w:0,d:0,l:0,gd:0,pts:0}],
+  H: [{name:'Team H1',w:0,d:0,l:0,gd:0,pts:0},{name:'Team H2',w:0,d:0,l:0,gd:0,pts:0},{name:'Team H3',w:0,d:0,l:0,gd:0,pts:0},{name:'Team H4',w:0,d:0,l:0,gd:0,pts:0}],
+  I: [{name:'Team I1',w:0,d:0,l:0,gd:0,pts:0},{name:'Team I2',w:0,d:0,l:0,gd:0,pts:0},{name:'Team I3',w:0,d:0,l:0,gd:0,pts:0},{name:'Team I4',w:0,d:0,l:0,gd:0,pts:0}]
+};
 
-// --- Generate round-robin fixtures for each group ---
+// Sample fixtures with TBD dates
+let fixtures = {};
 for(let g of GROUPS){
-  fixtures[g] = [];
-  let teams = groups[g].map(team=>team.name);
+  fixtures[g]=[];
+  let teams = groups[g].map(t=>t.name);
   for(let i=0;i<teams.length;i++){
     for(let j=i+1;j<teams.length;j++){
-      fixtures[g].push({home:teams[i],away:teams[j],scoreHome:null,scoreAway:null,date:'TBD'});
+      fixtures[g].push({home:teams[i],away:teams[j],scoreHome:'-',scoreAway:'-',date:'TBD'});
     }
   }
 }
 
-// --- Utility: Show Page ---
+// --- Page navigation ---
 function showPage(pageId){
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById(pageId).classList.add('active');
 }
 
-// --- Display Tables ---
+// --- Render Tables ---
 function renderTables(){
   let container = document.getElementById('tablesContainer');
   container.innerHTML='';
   for(let g of GROUPS){
     let tbl = document.createElement('table');
     tbl.classList.add('group-table');
-    let html = `<tr><th colspan="7">Group ${g}</th></tr>
+    let html = `<tr><th colspan="6">Group ${g}</th></tr>
     <tr><th>Team</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr>`;
     groups[g].sort((a,b)=>b.pts-b.pts || b.gd-a.gd);
-    for(let team of groups[g]){
-      html += `<tr>
-        <td>${team.name}</td>
-        <td>${team.w}</td>
-        <td>${team.d}</td>
-        <td>${team.l}</td>
-        <td>${team.gd}</td>
-        <td>${team.pts}</td>
+    for(let t of groups[g]){
+      html+=`<tr>
+        <td>${t.name}</td><td>${t.w}</td><td>${t.d}</td><td>${t.l}</td><td>${t.gd}</td><td>${t.pts}</td>
       </tr>`;
     }
-    tbl.innerHTML = html;
+    tbl.innerHTML=html;
     container.appendChild(tbl);
   }
 }
 
-// --- Display Fixtures ---
+// --- Render Fixtures ---
 function renderFixtures(){
   let container = document.getElementById('fixturesContainer');
   container.innerHTML='';
@@ -114,38 +112,15 @@ function renderFixtures(){
     for(let f of fixtures[g]){
       let div = document.createElement('div');
       div.classList.add('fixture-card');
-      div.innerHTML = `<b>${f.date}</b><br>${f.home} vs ${f.away} 
-        <br>
-        <input type="number" class="score" placeholder="Home" min="0" id="home-${g}-${f.home}-${f.away}">
-        <input type="number" class="score" placeholder="Away" min="0" id="away-${g}-${f.home}-${f.away}">
-        <button class="set-result" onclick="setResult('${g}','${f.home}','${f.away}')">Set Result</button>`;
+      div.innerHTML = `<b>${f.date}</b><br>${f.home} vs ${f.away} <br>Score: ${f.scoreHome} - ${f.scoreAway}`;
       container.appendChild(div);
     }
   }
 }
 
-// --- Set Result ---
-function setResult(group,home,away){
-  let sh = document.getElementById(`home-${group}-${home}-${away}`).value;
-  let sa = document.getElementById(`away-${group}-${home}-${away}`).value;
-  if(sh==='' || sa===''){alert("Enter both scores"); return;}
-  sh = parseInt(sh); sa = parseInt(sa);
-  let f = fixtures[group].find(fx=>fx.home===home && fx.away===away);
-  f.scoreHome=sh; f.scoreAway=sa;
-  // Update table
-  let homeTeam = groups[group].find(t=>t.name===home);
-  let awayTeam = groups[group].find(t=>t.name===away);
-  if(sh>sa){homeTeam.w+=1; homeTeam.pts+=3; awayTeam.l+=1;}
-  else if(sh<sa){awayTeam.w+=1; awayTeam.pts+=3; homeTeam.l+=1;}
-  else{homeTeam.d+=1; awayTeam.d+=1; homeTeam.pts+=1; awayTeam.pts+=1;}
-  homeTeam.gd += (sh-sa); awayTeam.gd += (sa-sh);
-  renderTables();
-}
-
 // --- Initial render ---
 renderTables();
 renderFixtures();
-
 </script>
 
 </body>
