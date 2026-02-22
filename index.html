@@ -14,6 +14,7 @@ body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;}
 .received{align-self:flex-start;background:#fff;}
 .reply-preview{background:#f0f0f0;padding:5px;margin-bottom:5px;border-radius:5px;font-size:12px;cursor:pointer;}
 .reply-name{font-weight:bold;font-size:12px;margin-bottom:2px;}
+.highlight{background:yellow;}
 .message img{max-width:100%;border-radius:6px;margin-top:5px;}
 .input-area{display:flex;align-items:center;padding:10px;border-top:1px solid #ddd;position:relative;}
 textarea{flex:1;padding:8px;border-radius:20px;border:1px solid #ccc;outline:none;max-height:120px;overflow-y:auto;}
@@ -45,17 +46,14 @@ let messageInput = document.getElementById("messageInput");
 let stickerPicker = document.getElementById("stickerPicker");
 let replyTo = null;
 let messageCount = 0;
-let longPressTimer;
 
-// Predefined stickers (WhatsApp style)
+// Predefined stickers
 const stickers = [
   "https://i.imgur.com/1Q1Z1G5.png",
   "https://i.imgur.com/XsQOWjU.png",
   "https://i.imgur.com/5Tt9Bna.png",
   "https://i.imgur.com/3v2Ujhy.png"
 ];
-
-// Populate sticker picker
 stickers.forEach(src=>{
   let img = document.createElement("img");
   img.src=src;
@@ -67,7 +65,7 @@ stickers.forEach(src=>{
   stickerPicker.appendChild(img);
 });
 
-// Adjust textarea height
+// Expandable textarea
 messageInput.addEventListener("input", function(){
   this.style.height="auto";
   this.style.height=this.scrollHeight+"px";
@@ -102,6 +100,7 @@ function sendMessage(){
   replyTo=null;
 }
 
+// Create message with swipe-to-reply
 function createMessage(text,type,replyData=null,imgSrc=null){
   messageCount++;
   let msgDiv = document.createElement("div");
@@ -112,7 +111,14 @@ function createMessage(text,type,replyData=null,imgSrc=null){
     let preview = document.createElement("div");
     preview.classList.add("reply-preview");
     preview.innerHTML = `<div class="reply-name">${replyData.name}</div>${replyData.text || '<i>Sticker/Image</i>'}`;
-    preview.onclick = ()=>document.getElementById(replyData.id).scrollIntoView({behavior:"smooth"});
+    preview.onclick = ()=>{
+      let orig = document.getElementById(replyData.id);
+      if(orig){
+        orig.scrollIntoView({behavior:"smooth",block:"center"});
+        orig.classList.add("highlight");
+        setTimeout(()=>orig.classList.remove("highlight"),1000);
+      }
+    };
     msgDiv.appendChild(preview);
   }
 
@@ -123,42 +129,41 @@ function createMessage(text,type,replyData=null,imgSrc=null){
     msgDiv.appendChild(img);
   }
 
-  // Swipe-to-reply
-  let startX=0;
-  let currentX=0;
-  let threshold=60;
-
+  // Swipe-to-reply logic
+  let startX=0,currentX=0,threshold=60;
   msgDiv.addEventListener("mousedown", e=>{
-    startX = e.clientX;
-    longPressTimer = setTimeout(()=>setReply(msgDiv.id,type==="sent"?"You":"Other",text || '<Sticker/Image>'),500);
+    startX=e.clientX;
     msgDiv.onmousemove = move;
     msgDiv.onmouseup = up;
   });
-
   function move(e){
-    currentX = e.clientX;
-    let diff = currentX - startX;
-    if(diff>0) msgDiv.style.transform = "translateX("+diff+"px)";
+    currentX=e.clientX;
+    let diff=currentX-startX;
+    if(diff>0) msgDiv.style.transform="translateX("+diff+"px)";
   }
-
   function up(){
-    let diff = currentX - startX;
+    let diff=currentX-startX;
     msgDiv.style.transform="translateX(0px)";
     if(diff>threshold){
       setReply(msgDiv.id,type==="sent"?"You":"Other",text || '<Sticker/Image>');
     }
     msgDiv.onmousemove=null;
     msgDiv.onmouseup=null;
-    clearTimeout(longPressTimer);
   }
 
-  // For mobile long press
-  msgDiv.addEventListener("touchstart", e=>{
-    startX = e.touches[0].clientX;
-    longPressTimer = setTimeout(()=>setReply(msgDiv.id,type==="sent"?"You":"Other",text || '<Sticker/Image>'),500);
+  // Mobile swipe
+  msgDiv.addEventListener("touchstart", e=>{startX=e.touches[0].clientX;});
+  msgDiv.addEventListener("touchmove", e=>{
+    currentX=e.touches[0].clientX;
+    let diff=currentX-startX;
+    if(diff>0) msgDiv.style.transform="translateX("+diff+"px)";
   });
   msgDiv.addEventListener("touchend", e=>{
-    clearTimeout(longPressTimer);
+    let diff=currentX-startX;
+    msgDiv.style.transform="translateX(0px)";
+    if(diff>threshold){
+      setReply(msgDiv.id,type==="sent"?"You":"Other",text || '<Sticker/Image>');
+    }
   });
 
   messagesDiv.appendChild(msgDiv);
@@ -172,7 +177,7 @@ function setReply(id,name,text){
 
 // Sample received messages
 createMessage("Hello! This is a test message","received");
-createMessage("You can reply to messages or stickers/images","received");
+createMessage("You can swipe to reply messages or stickers/images","received");
 </script>
 
 </body>
