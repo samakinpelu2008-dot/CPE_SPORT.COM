@@ -9,17 +9,17 @@ body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;}
 .chat-container{max-width:500px;margin:auto;height:100vh;display:flex;flex-direction:column;background:#fff;}
 .header{background:#075e54;color:white;padding:15px;font-weight:bold;}
 .messages{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;}
-.message{max-width:75%;padding:8px;margin:5px 0;border-radius:8px;position:relative;word-wrap:break-word;}
+.message{max-width:75%;padding:8px;margin:5px 0;border-radius:8px;position:relative;word-wrap:break-word;transition:transform 0.2s ease;}
 .sent{align-self:flex-end;background:#dcf8c6;}
 .received{align-self:flex-start;background:#fff;}
 .reply-preview{background:#f0f0f0;padding:5px;margin-bottom:5px;border-radius:5px;font-size:12px;cursor:pointer;}
 .reply-name{font-weight:bold;font-size:12px;margin-bottom:2px;}
 .message img{max-width:100%;border-radius:6px;margin-top:5px;}
-.input-area{display:flex;align-items:center;padding:10px;border-top:1px solid #ddd;}
+.input-area{display:flex;align-items:center;padding:10px;border-top:1px solid #ddd;position:relative;}
 textarea{flex:1;padding:8px;border-radius:20px;border:1px solid #ccc;outline:none;max-height:120px;overflow-y:auto;}
 button{margin-left:5px;padding:8px 12px;border:none;border-radius:20px;background:#075e54;color:white;cursor:pointer;}
-.emoji-picker{position:absolute;bottom:50px;left:10px;background:white;border-radius:12px;padding:5px;box-shadow:0 2px 6px rgba(0,0,0,0.2);display:flex;flex-wrap:wrap;width:200px;gap:5px;}
-.emoji-picker span{cursor:pointer;font-size:18px;}
+.sticker-picker{position:absolute;bottom:50px;left:10px;background:white;border-radius:12px;padding:5px;box-shadow:0 2px 6px rgba(0,0,0,0.2);display:flex;flex-wrap:wrap;width:200px;gap:5px;}
+.sticker-picker img{width:50px;height:50px;cursor:pointer;border-radius:6px;}
 </style>
 </head>
 <body>
@@ -30,33 +30,41 @@ button{margin-left:5px;padding:8px 12px;border:none;border-radius:20px;backgroun
   <div class="messages" id="messages"></div>
 
   <div class="input-area">
-    <button onclick="toggleEmojiPicker()">😀</button>
+    <button onclick="toggleStickerPicker()">� stickers</button>
     <button onclick="attachImage()">📷</button>
     <textarea id="messageInput" rows="1" placeholder="Type a message"></textarea>
     <button onclick="sendMessage()">Send</button>
   </div>
 </div>
 
-<div id="emojiPicker" class="emoji-picker" style="display:none;"></div>
+<div id="stickerPicker" class="sticker-picker" style="display:none;"></div>
 
 <script>
 let messagesDiv = document.getElementById("messages");
 let messageInput = document.getElementById("messageInput");
-let emojiPicker = document.getElementById("emojiPicker");
+let stickerPicker = document.getElementById("stickerPicker");
 let replyTo = null;
 let messageCount = 0;
+let longPressTimer;
 
-// Sample emoji list
-const emojis = ["😀","😂","❤️","👍","🔥","😮","😢","😍","🎉","🙌"];
+// Predefined stickers (WhatsApp style)
+const stickers = [
+  "https://i.imgur.com/1Q1Z1G5.png",
+  "https://i.imgur.com/XsQOWjU.png",
+  "https://i.imgur.com/5Tt9Bna.png",
+  "https://i.imgur.com/3v2Ujhy.png"
+];
 
-emojis.forEach(emoji=>{
-  let span = document.createElement("span");
-  span.innerText = emoji;
-  span.onclick = ()=> {
-    messageInput.value += emoji;
-    messageInput.focus();
+// Populate sticker picker
+stickers.forEach(src=>{
+  let img = document.createElement("img");
+  img.src=src;
+  img.onclick = () => {
+    createMessage("", "sent", replyTo, src);
+    replyTo=null;
+    stickerPicker.style.display="none";
   };
-  emojiPicker.appendChild(span);
+  stickerPicker.appendChild(img);
 });
 
 // Adjust textarea height
@@ -65,8 +73,8 @@ messageInput.addEventListener("input", function(){
   this.style.height=this.scrollHeight+"px";
 });
 
-function toggleEmojiPicker(){
-  emojiPicker.style.display = emojiPicker.style.display==="none"?"flex":"none";
+function toggleStickerPicker(){
+  stickerPicker.style.display = stickerPicker.style.display==="none"?"flex":"none";
 }
 
 function attachImage(){
@@ -103,7 +111,7 @@ function createMessage(text,type,replyData=null,imgSrc=null){
   if(replyData){
     let preview = document.createElement("div");
     preview.classList.add("reply-preview");
-    preview.innerHTML = `<div class="reply-name">${replyData.name}</div>${replyData.text}`;
+    preview.innerHTML = `<div class="reply-name">${replyData.name}</div>${replyData.text || '<i>Sticker/Image</i>'}`;
     preview.onclick = ()=>document.getElementById(replyData.id).scrollIntoView({behavior:"smooth"});
     msgDiv.appendChild(preview);
   }
@@ -115,12 +123,43 @@ function createMessage(text,type,replyData=null,imgSrc=null){
     msgDiv.appendChild(img);
   }
 
-  // Reply on long press
-  msgDiv.addEventListener("mousedown",()=>{
-    longPressTimer = setTimeout(()=>setReply(msgDiv.id,type==="sent"?"You":"Other",text),500);
+  // Swipe-to-reply
+  let startX=0;
+  let currentX=0;
+  let threshold=60;
+
+  msgDiv.addEventListener("mousedown", e=>{
+    startX = e.clientX;
+    longPressTimer = setTimeout(()=>setReply(msgDiv.id,type==="sent"?"You":"Other",text || '<Sticker/Image>'),500);
+    msgDiv.onmousemove = move;
+    msgDiv.onmouseup = up;
   });
-  msgDiv.addEventListener("mouseup",()=>clearTimeout(longPressTimer));
-  msgDiv.addEventListener("mouseleave",()=>clearTimeout(longPressTimer));
+
+  function move(e){
+    currentX = e.clientX;
+    let diff = currentX - startX;
+    if(diff>0) msgDiv.style.transform = "translateX("+diff+"px)";
+  }
+
+  function up(){
+    let diff = currentX - startX;
+    msgDiv.style.transform="translateX(0px)";
+    if(diff>threshold){
+      setReply(msgDiv.id,type==="sent"?"You":"Other",text || '<Sticker/Image>');
+    }
+    msgDiv.onmousemove=null;
+    msgDiv.onmouseup=null;
+    clearTimeout(longPressTimer);
+  }
+
+  // For mobile long press
+  msgDiv.addEventListener("touchstart", e=>{
+    startX = e.touches[0].clientX;
+    longPressTimer = setTimeout(()=>setReply(msgDiv.id,type==="sent"?"You":"Other",text || '<Sticker/Image>'),500);
+  });
+  msgDiv.addEventListener("touchend", e=>{
+    clearTimeout(longPressTimer);
+  });
 
   messagesDiv.appendChild(msgDiv);
   messagesDiv.scrollTop = messagesDiv.scrollHeight;
@@ -128,13 +167,12 @@ function createMessage(text,type,replyData=null,imgSrc=null){
 
 function setReply(id,name,text){
   replyTo = {id,name,text};
-  // simple visual feedback
-  messageInput.placeholder = "Replying to "+name;
+  messageInput.placeholder="Replying to "+name;
 }
 
 // Sample received messages
-createMessage("Hey! This is a test message","received");
-createMessage("You can reply, attach images or emojis","received");
+createMessage("Hello! This is a test message","received");
+createMessage("You can reply to messages or stickers/images","received");
 </script>
 
 </body>
