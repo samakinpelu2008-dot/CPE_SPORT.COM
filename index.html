@@ -1,205 +1,151 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Sammy Chat Prototype</title>
+<title>League Tournament App</title>
 <style>
 body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;}
-.chat-container{max-width:500px;margin:auto;height:100vh;display:flex;flex-direction:column;background:#fff;position:relative;}
-.header{background:#075e54;color:white;padding:15px;font-weight:bold;}
-.messages{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;}
-.message{max-width:75%;padding:8px;margin:5px 0;border-radius:12px;position:relative;word-wrap:break-word;transition:transform 0.2s ease;}
-.sent{align-self:flex-end;background:#dcf8c6;}
-.received{align-self:flex-start;background:#fff;}
-.reply-preview{background:#f0f0f0;padding:5px;margin-bottom:5px;border-radius:5px;font-size:12px;cursor:pointer;display:flex;align-items:center;}
-.reply-name{font-weight:bold;font-size:12px;margin-bottom:2px;}
-.arrow{font-weight:bold;margin-right:5px;}
-.highlight{background:yellow;}
-.message img{max-width:250px;border-radius:12px;margin-top:5px;display:block;}
-.input-area{display:flex;align-items:center;padding:10px;border-top:1px solid #ddd;position:relative;}
-textarea{flex:1;padding:8px;border-radius:20px;border:1px solid #ccc;outline:none;max-height:120px;overflow-y:auto;}
-button{margin-left:5px;padding:8px 12px;border:none;border-radius:20px;background:#075e54;color:white;cursor:pointer;}
-.sticker-picker{position:absolute;bottom:50px;left:10px;background:white;border-radius:12px;padding:5px;box-shadow:0 2px 6px rgba(0,0,0,0.2);display:flex;flex-wrap:wrap;width:200px;gap:5px;}
-.sticker-picker img{width:50px;height:50px;cursor:pointer;border-radius:12px;}
-#scrollToLatest{position:absolute;bottom:80px;right:20px;background:#075e54;color:white;padding:8px;border-radius:50%;cursor:pointer;display:none;box-shadow:0 2px 6px rgba(0,0,0,0.3);}
+.header{background:#075e54;color:white;padding:15px;font-weight:bold;text-align:center;}
+nav{display:flex;justify-content:space-around;background:#25D366;padding:10px;}
+nav button{padding:8px 15px;border:none;border-radius:8px;color:white;font-weight:bold;cursor:pointer;background:#128C7E;}
+.page{display:none;padding:15px;}
+.active{display:block;}
+.group-table{border-collapse:collapse;width:100%;margin-bottom:20px;}
+.group-table th, .group-table td{border:1px solid #ccc;padding:6px;text-align:center;}
+.fixture-card{border:1px solid #ccc;border-radius:8px;padding:10px;margin-bottom:10px;background:white;}
+input.score{width:40px;text-align:center;}
+button.set-result{padding:4px 8px;margin-left:5px;}
 </style>
 </head>
 <body>
 
-<div class="chat-container">
-  <div class="header">Sammy Chat</div>
+<div class="header">League Tournament App</div>
+<nav>
+  <button onclick="showPage('home')">Home</button>
+  <button onclick="showPage('tables')">Tables</button>
+  <button onclick="showPage('fixtures')">Fixtures/Results</button>
+</nav>
 
-  <div class="messages" id="messages"></div>
-
-  <div class="input-area">
-    <button onclick="toggleStickerPicker()">� stickers</button>
-    <button onclick="attachImage()">📷</button>
-    <textarea id="messageInput" rows="1" placeholder="Type a message"></textarea>
-    <button onclick="sendMessage()">Send</button>
-  </div>
-
-  <div id="scrollToLatest" onclick="scrollToLatest()">↓</div>
+<!-- Home Page -->
+<div id="home" class="page active">
+  <h2>Admin News</h2>
+  <div id="adminNews">Welcome to the League Tournament!</div>
 </div>
 
-<div id="stickerPicker" class="sticker-picker" style="display:none;"></div>
+<!-- Tables Page -->
+<div id="tables" class="page">
+  <h2>Group Tables</h2>
+  <div id="tablesContainer"></div>
+</div>
+
+<!-- Fixtures Page -->
+<div id="fixtures" class="page">
+  <h2>Fixtures & Results</h2>
+  <div id="fixturesContainer"></div>
+</div>
 
 <script>
-let messagesDiv = document.getElementById("messages");
-let messageInput = document.getElementById("messageInput");
-let stickerPicker = document.getElementById("stickerPicker");
-let replyTo = null;
-let messageCount = 0;
-let scrollArrow = document.getElementById("scrollToLatest");
+// --- Config ---
+const GROUPS = ['A','B','C','D','E','F','G','H','I'];
+const TEAMS_PER_GROUP = 4;
+let groups = {}; // will store team info
+let fixtures = {}; // will store fixtures for each group
 
-// Stickers
-const stickers = [
-  "https://i.imgur.com/1Q1Z1G5.png",
-  "https://i.imgur.com/XsQOWjU.png",
-  "https://i.imgur.com/5Tt9Bna.png",
-  "https://i.imgur.com/3v2Ujhy.png"
-];
-stickers.forEach(src=>{
-  let img = document.createElement("img");
-  img.src=src;
-  img.onclick = () => {
-    createMessage("", "sent", replyTo, src);
-    replyTo=null;
-    stickerPicker.style.display="none";
-  };
-  stickerPicker.appendChild(img);
-});
-
-// Expandable textarea
-messageInput.addEventListener("input", function(){
-  this.style.height="auto";
-  this.style.height=this.scrollHeight+"px";
-});
-
-function toggleStickerPicker(){
-  stickerPicker.style.display = stickerPicker.style.display==="none"?"flex":"none";
+// --- Input Teams (admin can edit these names) ---
+for(let g=0; g<GROUPS.length; g++){
+  groups[GROUPS[g]] = [];
+  for(let t=0; t<TEAMS_PER_GROUP; t++){
+    let name = prompt(`Enter name of team ${t+1} for group ${GROUPS[g]}`, `Team ${t+1}`);
+    groups[GROUPS[g]].push({name:name,w:0,d:0,l:0,gd:0,pts:0});
+  }
 }
 
-function attachImage(){
-  let fileInput = document.createElement("input");
-  fileInput.type="file";
-  fileInput.accept="image/*";
-  fileInput.onchange = e => {
-    let file = e.target.files[0];
-    if(!file) return;
-    let reader = new FileReader();
-    reader.onload = function(evt){
-      createMessage("", "sent", replyTo, evt.target.result);
-      replyTo=null;
-    };
-    reader.readAsDataURL(file);
-  };
-  fileInput.click();
-}
-
-function sendMessage(){
-  let text = messageInput.value.trim();
-  if(text==="") return;
-  createMessage(text, "sent", replyTo);
-  messageInput.value="";
-  replyTo=null;
-}
-
-// Create message with swipe-to-reply
-function createMessage(text,type,replyData=null,imgSrc=null){
-  messageCount++;
-  let msgDiv = document.createElement("div");
-  msgDiv.classList.add("message",type);
-  msgDiv.id = "msg-"+messageCount;
-
-  if(replyData){
-    let preview = document.createElement("div");
-    preview.classList.add("reply-preview");
-    preview.innerHTML = `<span class="arrow">↩</span><div>
-      <div class="reply-name">${replyData.name}</div>
-      ${replyData.text || '<i>Sticker/Image</i>'}
-    </div>`;
-    preview.onclick = ()=>{
-      let orig = document.getElementById(replyData.id);
-      if(orig){
-        orig.scrollIntoView({behavior:"smooth",block:"center"});
-        orig.classList.add("highlight");
-        setTimeout(()=>orig.classList.remove("highlight"),1200);
-      }
-    };
-    msgDiv.appendChild(preview);
-  }
-
-  if(text) msgDiv.appendChild(document.createElement("div")).innerText=text;
-  if(imgSrc){
-    let img = document.createElement("img");
-    img.src=imgSrc;
-    msgDiv.appendChild(img);
-  }
-
-  // Swipe-to-reply logic
-  let startX=0,currentX=0,threshold=60;
-  msgDiv.addEventListener("mousedown", e=>{
-    startX=e.clientX;
-    msgDiv.onmousemove = move;
-    msgDiv.onmouseup = up;
-  });
-  function move(e){
-    currentX=e.clientX;
-    let diff=currentX-startX;
-    if(diff>0) msgDiv.style.transform="translateX("+diff+"px)";
-  }
-  function up(){
-    let diff=currentX-startX;
-    msgDiv.style.transform="translateX(0px)";
-    if(diff>threshold){
-      setReply(msgDiv.id,type==="sent"?"You":"Other",text || '<Sticker/Image>');
+// --- Generate round-robin fixtures for each group ---
+for(let g of GROUPS){
+  fixtures[g] = [];
+  let teams = groups[g].map(team=>team.name);
+  for(let i=0;i<teams.length;i++){
+    for(let j=i+1;j<teams.length;j++){
+      fixtures[g].push({home:teams[i],away:teams[j],scoreHome:null,scoreAway:null,date:'TBD'});
     }
-    msgDiv.onmousemove=null;
-    msgDiv.onmouseup=null;
   }
+}
 
-  // Mobile swipe
-  msgDiv.addEventListener("touchstart", e=>{startX=e.touches[0].clientX;});
-  msgDiv.addEventListener("touchmove", e=>{
-    currentX=e.touches[0].clientX;
-    let diff=currentX-startX;
-    if(diff>0) msgDiv.style.transform="translateX("+diff+"px)";
-  });
-  msgDiv.addEventListener("touchend", e=>{
-    let diff=currentX-startX;
-    msgDiv.style.transform="translateX(0px)";
-    if(diff>threshold){
-      setReply(msgDiv.id,type==="sent"?"You":"Other",text || '<Sticker/Image>');
+// --- Utility: Show Page ---
+function showPage(pageId){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(pageId).classList.add('active');
+}
+
+// --- Display Tables ---
+function renderTables(){
+  let container = document.getElementById('tablesContainer');
+  container.innerHTML='';
+  for(let g of GROUPS){
+    let tbl = document.createElement('table');
+    tbl.classList.add('group-table');
+    let html = `<tr><th colspan="7">Group ${g}</th></tr>
+    <tr><th>Team</th><th>W</th><th>D</th><th>L</th><th>GD</th><th>Pts</th></tr>`;
+    groups[g].sort((a,b)=>b.pts-b.pts || b.gd-a.gd);
+    for(let team of groups[g]){
+      html += `<tr>
+        <td>${team.name}</td>
+        <td>${team.w}</td>
+        <td>${team.d}</td>
+        <td>${team.l}</td>
+        <td>${team.gd}</td>
+        <td>${team.pts}</td>
+      </tr>`;
     }
-  });
-
-  messagesDiv.appendChild(msgDiv);
-  messagesDiv.scrollTop = messagesDiv.scrollHeight;
-}
-
-function setReply(id,name,text){
-  replyTo = {id,name,text};
-  messageInput.placeholder="Replying to "+name;
-}
-
-// Jump to latest message arrow
-messagesDiv.addEventListener("scroll", ()=>{
-  if(messagesDiv.scrollTop + messagesDiv.clientHeight < messagesDiv.scrollHeight - 50){
-    scrollArrow.style.display="block";
-  } else {
-    scrollArrow.style.display="none";
+    tbl.innerHTML = html;
+    container.appendChild(tbl);
   }
-});
-function scrollToLatest(){
-  messagesDiv.scrollTo({top:messagesDiv.scrollHeight, behavior:"smooth"});
 }
 
-// Sample messages
-for(let i=1;i<=50;i++){
-  createMessage("Sample message number "+i,"received");
+// --- Display Fixtures ---
+function renderFixtures(){
+  let container = document.getElementById('fixturesContainer');
+  container.innerHTML='';
+  for(let g of GROUPS){
+    let h3 = document.createElement('h3');
+    h3.innerText = `Group ${g}`;
+    container.appendChild(h3);
+    for(let f of fixtures[g]){
+      let div = document.createElement('div');
+      div.classList.add('fixture-card');
+      div.innerHTML = `<b>${f.date}</b><br>${f.home} vs ${f.away} 
+        <br>
+        <input type="number" class="score" placeholder="Home" min="0" id="home-${g}-${f.home}-${f.away}">
+        <input type="number" class="score" placeholder="Away" min="0" id="away-${g}-${f.home}-${f.away}">
+        <button class="set-result" onclick="setResult('${g}','${f.home}','${f.away}')">Set Result</button>`;
+      container.appendChild(div);
+    }
+  }
 }
-createMessage("Swipe messages to reply, tap arrow to scroll to original","received");
+
+// --- Set Result ---
+function setResult(group,home,away){
+  let sh = document.getElementById(`home-${group}-${home}-${away}`).value;
+  let sa = document.getElementById(`away-${group}-${home}-${away}`).value;
+  if(sh==='' || sa===''){alert("Enter both scores"); return;}
+  sh = parseInt(sh); sa = parseInt(sa);
+  let f = fixtures[group].find(fx=>fx.home===home && fx.away===away);
+  f.scoreHome=sh; f.scoreAway=sa;
+  // Update table
+  let homeTeam = groups[group].find(t=>t.name===home);
+  let awayTeam = groups[group].find(t=>t.name===away);
+  if(sh>sa){homeTeam.w+=1; homeTeam.pts+=3; awayTeam.l+=1;}
+  else if(sh<sa){awayTeam.w+=1; awayTeam.pts+=3; homeTeam.l+=1;}
+  else{homeTeam.d+=1; awayTeam.d+=1; homeTeam.pts+=1; awayTeam.pts+=1;}
+  homeTeam.gd += (sh-sa); awayTeam.gd += (sa-sh);
+  renderTables();
+}
+
+// --- Initial render ---
+renderTables();
+renderFixtures();
+
 </script>
 
 </body>
