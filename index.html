@@ -9,18 +9,19 @@ body{margin:0;font-family:Arial,sans-serif;background:#f0f2f5;}
 .chat-container{max-width:500px;margin:auto;height:100vh;display:flex;flex-direction:column;background:#fff;}
 .header{background:#075e54;color:white;padding:15px;font-weight:bold;}
 .messages{flex:1;overflow-y:auto;padding:10px;display:flex;flex-direction:column;}
-.message{max-width:75%;padding:8px;margin:5px 0;border-radius:8px;position:relative;word-wrap:break-word;transition:transform 0.2s ease;}
+.message{max-width:75%;padding:8px;margin:5px 0;border-radius:12px;position:relative;word-wrap:break-word;transition:transform 0.2s ease;}
 .sent{align-self:flex-end;background:#dcf8c6;}
 .received{align-self:flex-start;background:#fff;}
-.reply-preview{background:#f0f0f0;padding:5px;margin-bottom:5px;border-radius:5px;font-size:12px;cursor:pointer;}
+.reply-preview{background:#f0f0f0;padding:5px;margin-bottom:5px;border-radius:5px;font-size:12px;cursor:pointer;display:flex;align-items:center;}
 .reply-name{font-weight:bold;font-size:12px;margin-bottom:2px;}
+.arrow{font-weight:bold;margin-right:5px;}
 .highlight{background:yellow;}
-.message img{max-width:100%;border-radius:6px;margin-top:5px;}
+.message img{max-width:250px;border-radius:12px;margin-top:5px;display:block;}
 .input-area{display:flex;align-items:center;padding:10px;border-top:1px solid #ddd;position:relative;}
 textarea{flex:1;padding:8px;border-radius:20px;border:1px solid #ccc;outline:none;max-height:120px;overflow-y:auto;}
 button{margin-left:5px;padding:8px 12px;border:none;border-radius:20px;background:#075e54;color:white;cursor:pointer;}
 .sticker-picker{position:absolute;bottom:50px;left:10px;background:white;border-radius:12px;padding:5px;box-shadow:0 2px 6px rgba(0,0,0,0.2);display:flex;flex-wrap:wrap;width:200px;gap:5px;}
-.sticker-picker img{width:50px;height:50px;cursor:pointer;border-radius:6px;}
+.sticker-picker img{width:50px;height:50px;cursor:pointer;border-radius:12px;}
 </style>
 </head>
 <body>
@@ -107,16 +108,20 @@ function createMessage(text,type,replyData=null,imgSrc=null){
   msgDiv.classList.add("message",type);
   msgDiv.id = "msg-"+messageCount;
 
+  // Reply preview
   if(replyData){
     let preview = document.createElement("div");
     preview.classList.add("reply-preview");
-    preview.innerHTML = `<div class="reply-name">${replyData.name}</div>${replyData.text || '<i>Sticker/Image</i>'}`;
+    preview.innerHTML = `<span class="arrow">↩</span><div>
+      <div class="reply-name">${replyData.name}</div>
+      ${replyData.text || '<i>Sticker/Image</i>'}
+    </div>`;
     preview.onclick = ()=>{
       let orig = document.getElementById(replyData.id);
       if(orig){
         orig.scrollIntoView({behavior:"smooth",block:"center"});
         orig.classList.add("highlight");
-        setTimeout(()=>orig.classList.remove("highlight"),1000);
+        setTimeout(()=>orig.classList.remove("highlight"),1200);
       }
     };
     msgDiv.appendChild(preview);
@@ -176,8 +181,10 @@ function setReply(id,name,text){
 }
 
 // Sample received messages
-createMessage("Hello! This is a test message","received");
-createMessage("You can swipe to reply messages or stickers/images","received");
+for(let i=1;i<=30;i++){
+  createMessage("Sample message number "+i,"received");
+}
+createMessage("You can swipe any message to reply, tap the arrow to scroll back","received");
 </script>
 
 </body>
